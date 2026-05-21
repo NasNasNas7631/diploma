@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запуск процессов Runa WFE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .example {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .example pre {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/history" class="btn btn-info" style="background: #48bb78;">📊 История</a>
+    <h1>Запуск процесса Runa WFE</h1>
+    <form id="processForm">
+        <label for="definitionId">ID определения процесса (обязательно):</label>
+        <input type="text" id="definitionId" name="definitionId" required placeholder="например, 123">
+
+        <label for="variables">Переменные процесса (JSON):</label>
+        <textarea id="variables" name="variables" placeholder='{"ключ": "значение", "число": 42}'></textarea>
+
+        <button type="submit">♦ Запустить процесс ♦</button>
+    </form>
+
+    <div id="messageBox" class="message"></div>
+
+    <div class="example">
+        <strong>Пример JSON переменных:</strong>
+        <pre>{
+  "comment": "Запуск из веб-интерфейса",
+  "priority": 1,
+  "userId": "ivanov"
+}</pre>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('processForm');
+    const messageBox = document.getElementById('messageBox');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        // Получаем значения
+        const definitionId = document.getElementById('definitionId').value;
+        let variables = {};
+        const variablesText = document.getElementById('variables').value.trim();
+
+        if (variablesText) {
+            try {
+                variables = JSON.parse(variablesText);
+            } catch (e) {
+                showMessage('Ошибка: Неверный формат JSON в переменных', 'error');
+                return;
+            }
+        }
+
+        // Показываем индикатор загрузки
+        showMessage('Запуск процесса... Пожалуйста, подождите', 'loading');
+
+        // Отправляем запрос
+        try {
+            const response = await fetch('/start_process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    definition_id: definitionId,
+                    variables: variables
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showMessage(result.message || 'Процесс успешно запущен', 'success');
+                // Дополнительно можно очистить форму или оставить
+            } else {
+                showMessage(`Ошибка: ${result.error || 'Неизвестная ошибка'}`, 'error');
+            }
+        } catch (error) {
+            showMessage(`Сетевая ошибка: ${error.message}`, 'error');
+        }
+    });
+
+    function showMessage(text, type) {
+        messageBox.textContent = text;
+        messageBox.className = `message ${type}`;
+        messageBox.style.display = 'block';
+
+        // Автоматически скрываем success/error через 5 секунд, но loading не скрываем
+        if (type !== 'loading') {
+            setTimeout(() => {
+                if (messageBox.className.includes(type)) {
+                    messageBox.style.display = 'none';
+                }
+            }, 5000);
+        }
+    }
+</script>
+</body>
+</html>

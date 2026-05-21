@@ -1,0 +1,1693 @@
+[
+  {
+    "id": 18,
+    "timestamp": "2026-05-19T18:07:25.891816",
+    "process_id": "process_3_3_1779203245",
+    "definition_id": "process_3",
+    "variables": {
+      "production_period": "2025-02",
+      "created_by": "planner@company.com",
+      "production_requirements": {
+        "truck": {
+          "planned_hours": 160,
+          "priority": "high"
+        },
+        "excavator": {
+          "planned_hours": 120,
+          "priority": "medium"
+        },
+        "bulldozer": {
+          "planned_hours": 80,
+          "priority": "low"
+        }
+      },
+      "fuel_price": 55,
+      "fuel_consumption_per_km": 0.38
+    },
+    "result": {
+      "process_instance_id": "process_3_3_1779203245",
+      "process_key": "process_3",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "PROD_20260519_180725",
+        "document_version": 2,
+        "production_period": "2025-02",
+        "total_planned_hours": 688.0,
+        "total_equipment_count": 4,
+        "total_mileage": 24424.0,
+        "total_transport_cost": 571521.6,
+        "approval_status": "signed",
+        "printed_forms": [
+          {
+            "type": "План-график",
+            "filename": "PROD_20260519_180725_План-график.pdf"
+          },
+          {
+            "type": "Смета затрат",
+            "filename": "PROD_20260519_180725_Смета затрат.pdf"
+          },
+          {
+            "type": "Потребность в ТС",
+            "filename": "PROD_20260519_180725_Потребность в ТС.pdf"
+          },
+          {
+            "type": "Расчет ГСМ",
+            "filename": "PROD_20260519_180725_Расчет ГСМ.pdf"
+          }
+        ],
+        "rework_count": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Производственная программа",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'production_period': '2025-02', 'created_by': 'planner@company.com', 'production_requirements': {'truck': {'planned_hours': 160, 'priority': 'high'}, 'excavator': {'planned_hours': 120, 'priority': 'medium'}, 'bulldozer': {'planned_hours': 80, 'priority': 'low'}}, 'fuel_price': 55, 'fuel_consumption_per_km': 0.38}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Производственная программа",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "init",
+        "message": "Период: 2025-02",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "init",
+        "message": "Документ: PROD_20260519_180725",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Инициализация",
+        "message": "Создание производственной программы",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Автозаполнение",
+        "message": "Автозаполнение ТЧ из Закрепления ТС и Потребности ТС",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Автозаполнение",
+        "message": "Заполнено 4 позиций",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Автозаполнение",
+        "message": "Всего плановых часов: 688.00",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Пересчет км",
+        "message": "Пересчет км для автотранспорта",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Пересчет км",
+        "message": "Общий километраж: 24424.00 км",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Пересчет км",
+        "message": "Общие затраты: 571,521.60 руб.",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Проверка обновления",
+        "message": "Анализ необходимости обновления документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Проверка обновления",
+        "message": "Решение: НЕТ - создание нового документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Создание документа",
+        "message": "Установка статуса 'Актуально' у нового документа",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Создание документа",
+        "message": "Новый документ PROD_20260519_180725 (версия 2) создан",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Создание программы",
+        "message": "Создание производственной программы",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Создание программы",
+        "message": "Производственная программа создана: PROD_20260519_180725",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Согласование",
+        "message": "Согласование документа",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Согласование",
+        "message": "Статус согласования: approved",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Проверка согласования",
+        "message": "Проверка результата согласования",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Проверка согласования",
+        "message": "Решение: ДА - документ согласован",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Подписание",
+        "message": "Подписание документа",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Подписание",
+        "message": "Документ подписан: None",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Запись в регистр",
+        "message": "Запись движений в регистр Обороты производственной программы",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Запись в регистр",
+        "message": "Производственная программа записана в регистр",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "Печатные формы",
+        "message": "Создание печатных форм",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "Печатные формы",
+        "message": "Создано 4 печатных форм",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "SUCCESS",
+        "step": "complete",
+        "message": "Процесс успешно завершен! Создано 4 печатных форм",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:07:25.891816",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 17,
+    "timestamp": "2026-05-19T18:06:58.591011",
+    "process_id": "process_2_2_1779203218",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_2_1779203218",
+      "process_key": "process_2",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "REPAIR_20260519_180658",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": {
+          "class": "C",
+          "total_cost": 0,
+          "repair_type": "Текущий ремонт",
+          "recommendation": "Низкий приоритет, стандартный контроль",
+          "analysis_date": "2026-05-19T18:06:58.591011",
+          "analyzed_by": "leasing@company.com"
+        },
+        "is_third_party": true,
+        "planning_records": 1
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "init",
+        "message": "Документ: REPAIR_20260519_180658",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "init",
+        "message": "Оборудование: crane (ID: CRN-089)",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Планирование ремонта",
+        "message": "Инициализация планирования ремонтных работ",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Планирование ремонта",
+        "message": "  - Тип ТС: crane",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Планирование ремонта",
+        "message": "  - Возраст: 8 лет",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Планирование ремонта",
+        "message": "  - Часы работы: 9500 ч",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Планирование ремонта",
+        "message": "  - Серьезность: high",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Анализ необходимости капитального ремонта",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Решение: НЕТ - стандартная процедура",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проверка VIN",
+        "message": "Проверка VIN и группы Сторонние",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проверка VIN",
+        "message": "Результат: VIN код валиден; Производитель: Mercedes",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проверка VIN",
+        "message": "Стороннее оборудование: True",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Ввод стоимости",
+        "message": "Ввод стоимости (Ремонт/Закупка)",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Ввод стоимости",
+        "message": "Стоимость ремонта: 0.00 руб.",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Ввод стоимости",
+        "message": "Стоимость закупки: 0.00 руб.",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Ввод стоимости",
+        "message": "Общая стоимость: 0.00 руб.",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Проведение документа",
+        "message": "Проведение документа",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "SUCCESS",
+        "step": "Проведение документа",
+        "message": "Документ REPAIR_20260519_180658 проведен",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "Запись в регистр",
+        "message": "Запись движений в регистр Показатели планированияТС",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "SUCCESS",
+        "step": "Запись в регистр",
+        "message": "Показатели успешно записаны в регистр",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "ABC-анализ",
+        "message": "Создание ABC-анализа",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "SUCCESS",
+        "step": "ABC-анализ",
+        "message": "Результат ABC-анализа: Класс C",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "ABC-анализ",
+        "message": "Рекомендация: Низкий приоритет, стандартный контроль",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "SUCCESS",
+        "step": "complete",
+        "message": "Процесс успешно завершен! Общая стоимость: 0.00 руб.",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:58.591011",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 16,
+    "timestamp": "2026-05-19T18:06:38.580889",
+    "process_id": "process_1_1_1779203198",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "process_1_1_1779203198",
+      "process_key": "process_1",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-19T18:06:38.580889"
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'excavator', 'work_volume': 10, 'planned_hours': 30, 'author': 'ivanov@example.com', 'new_document_id': 'DOC-001', 'old_document_id': 'DOC-000', 'force_update': True}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Начало расчета времени работы",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Расчет завершен. Время работы: 25.0 м/ч",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Анализ необходимости обновления документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Решение: ДА - требуется обновление",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Установка статуса 'Неактуально' для старого документа",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Статус старого документа обновлен",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Отправка уведомления автору",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Уведомление отправлено автору ivanov@example.com",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Создание планирования работы ТС",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Планирование создано: {'document_id': 'DOC-001', 'author': 'ivanov@example.com', 'calculated_time': 25.0, 'status': 'DRAFT', 'created_at': '2026-05-19T18:06:38.580889'}",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-19T18:06:38.580889",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 15,
+    "timestamp": "2026-05-19T18:01:20.316917",
+    "process_id": "process_2_2_1779202880",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_2_1779202880",
+      "process_key": "process_2",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "REPAIR_20260519_180120",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": {
+          "class": "C",
+          "total_cost": 0,
+          "repair_type": "Текущий ремонт",
+          "recommendation": "Низкий приоритет, стандартный контроль",
+          "analysis_date": "2026-05-19T18:01:20.314917",
+          "analyzed_by": "leasing@company.com"
+        },
+        "is_third_party": true,
+        "planning_records": 1
+      }
+    },
+    "logs": [],
+    "status": "success"
+  },
+  {
+    "id": 14,
+    "timestamp": "2026-05-19T18:01:00.374778",
+    "process_id": "process_1_1_1779202860",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "process_1_1_1779202860",
+      "process_key": "process_1",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-19 18:01:00.374778"
+      }
+    },
+    "logs": [],
+    "status": "success"
+  },
+  {
+    "id": 13,
+    "timestamp": "2026-05-19T17:57:58.314287",
+    "process_id": "process_2_2_1779202678",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_2_1779202678",
+      "process_key": "process_2",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "REPAIR_20260519_175758",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": {
+          "class": "C",
+          "total_cost": 0,
+          "repair_type": "Текущий ремонт",
+          "recommendation": "Низкий приоритет, стандартный контроль",
+          "analysis_date": "2026-05-19T17:57:58.312289",
+          "analyzed_by": "leasing@company.com"
+        },
+        "is_third_party": true,
+        "planning_records": 1
+      }
+    },
+    "logs": [],
+    "status": "success"
+  },
+  {
+    "id": 12,
+    "timestamp": "2026-05-19T17:56:56.999785",
+    "process_id": "process_1_1_1779202616",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "process_1_1_1779202616",
+      "process_key": "process_1",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-19 17:56:56.999785"
+      }
+    },
+    "logs": [],
+    "status": "success"
+  },
+  {
+    "id": 11,
+    "timestamp": "2026-05-19T17:51:30.606118",
+    "process_id": "process_1_4_1779202290",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "process_1_4_1779202290",
+      "process_key": "process_1",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-19 17:51:30.606118"
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:51:30.606118",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:51:30.606118",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'excavator', 'work_volume': 10, 'planned_hours': 30, 'author': 'ivanov@example.com', 'new_document_id': 'DOC-001', 'old_document_id': 'DOC-000', 'force_update': True}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:51:30.606118",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 10,
+    "timestamp": "2026-05-19T17:50:52.303241",
+    "process_id": "process_3_3_1779202252",
+    "definition_id": "process_3",
+    "variables": {
+      "production_period": "2025-02",
+      "created_by": "planner@company.com",
+      "production_requirements": {
+        "truck": {
+          "planned_hours": 160,
+          "priority": "high"
+        },
+        "excavator": {
+          "planned_hours": 120,
+          "priority": "medium"
+        },
+        "bulldozer": {
+          "planned_hours": 80,
+          "priority": "low"
+        }
+      },
+      "fuel_price": 55,
+      "fuel_consumption_per_km": 0.38
+    },
+    "result": {
+      "process_instance_id": "process_3_3_1779202252",
+      "process_key": "process_3",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "PROD_20260519_175052",
+        "document_version": 2,
+        "production_period": "2025-02",
+        "total_planned_hours": 688.0,
+        "total_equipment_count": 4,
+        "total_mileage": 24424.0,
+        "total_transport_cost": 571521.6,
+        "approval_status": "signed",
+        "printed_forms": [
+          {
+            "type": "План-график",
+            "filename": "PROD_20260519_175052_План-график.pdf",
+            "created_at": "2026-05-19T17:50:52.303241",
+            "size_kb": 1100
+          },
+          {
+            "type": "Смета затрат",
+            "filename": "PROD_20260519_175052_Смета затрат.pdf",
+            "created_at": "2026-05-19T17:50:52.303241",
+            "size_kb": 1200
+          },
+          {
+            "type": "Потребность в ТС",
+            "filename": "PROD_20260519_175052_Потребность в ТС.pdf",
+            "created_at": "2026-05-19T17:50:52.303241",
+            "size_kb": 1600
+          },
+          {
+            "type": "Расчет ГСМ",
+            "filename": "PROD_20260519_175052_Расчет ГСМ.pdf",
+            "created_at": "2026-05-19T17:50:52.303241",
+            "size_kb": 1000
+          }
+        ],
+        "rework_count": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:50:52.302242",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Производственная программа",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:52.302242",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'production_period': '2025-02', 'created_by': 'planner@company.com', 'production_requirements': {'truck': {'planned_hours': 160, 'priority': 'high'}, 'excavator': {'planned_hours': 120, 'priority': 'medium'}, 'bulldozer': {'planned_hours': 80, 'priority': 'low'}}, 'fuel_price': 55, 'fuel_consumption_per_km': 0.38}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:52.303241",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 9,
+    "timestamp": "2026-05-19T17:50:38.597532",
+    "process_id": "process_2_2_1779202238",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_2_1779202238",
+      "process_key": "process_2",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "REPAIR_20260519_175038",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": {
+          "class": "C",
+          "total_cost": 0,
+          "repair_type": "Текущий ремонт",
+          "recommendation": "Низкий приоритет, стандартный контроль",
+          "analysis_date": "2026-05-19T17:50:38.597532",
+          "analyzed_by": "leasing@company.com"
+        },
+        "is_third_party": true,
+        "planning_records": 1
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:50:38.597532",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:38.597532",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:38.597532",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 8,
+    "timestamp": "2026-05-19T17:50:15.799873",
+    "process_id": "process_2_1_1779202215",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_1_1779202215",
+      "process_key": "process_2",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "REPAIR_20260519_175015",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": {
+          "class": "C",
+          "total_cost": 0,
+          "repair_type": "Текущий ремонт",
+          "recommendation": "Низкий приоритет, стандартный контроль",
+          "analysis_date": "2026-05-19T17:50:15.799873",
+          "analyzed_by": "leasing@company.com"
+        },
+        "is_third_party": true,
+        "planning_records": 1
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:50:15.799873",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:15.799873",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:50:15.799873",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 7,
+    "timestamp": "2026-05-19T17:47:48.739901",
+    "process_id": "process_2_4_1779202068",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_4_1779202068",
+      "process_key": "process_2",
+      "status": "rework_needed",
+      "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+      "result": {
+        "document_id": "REPAIR_20260519_174748",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": null,
+        "is_third_party": null,
+        "planning_records": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:47:48.739901",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:47:48.739901",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:47:48.739901",
+        "level": "WARNING",
+        "step": "rework",
+        "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+        "type": "system"
+      }
+    ],
+    "status": "rework_needed"
+  },
+  {
+    "id": 6,
+    "timestamp": "2026-05-19T17:47:03.079491",
+    "process_id": "process_3_3_1779202023",
+    "definition_id": "process_3",
+    "variables": {
+      "production_period": "2025-02",
+      "created_by": "planner@company.com",
+      "production_requirements": {
+        "truck": {
+          "planned_hours": 160,
+          "priority": "high"
+        },
+        "excavator": {
+          "planned_hours": 120,
+          "priority": "medium"
+        },
+        "bulldozer": {
+          "planned_hours": 80,
+          "priority": "low"
+        }
+      },
+      "fuel_price": 55,
+      "fuel_consumption_per_km": 0.38
+    },
+    "result": {
+      "process_instance_id": "process_3_3_1779202023",
+      "process_key": "process_3",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "PROD_20260519_174703",
+        "document_version": 2,
+        "production_period": "2025-02",
+        "total_planned_hours": 688.0,
+        "total_equipment_count": 4,
+        "total_mileage": 24424.0,
+        "total_transport_cost": 571521.6,
+        "approval_status": "signed",
+        "printed_forms": [
+          {
+            "type": "План-график",
+            "filename": "PROD_20260519_174703_План-график.pdf",
+            "created_at": "2026-05-19T17:47:03.079491",
+            "size_kb": 1100
+          },
+          {
+            "type": "Смета затрат",
+            "filename": "PROD_20260519_174703_Смета затрат.pdf",
+            "created_at": "2026-05-19T17:47:03.079491",
+            "size_kb": 1200
+          },
+          {
+            "type": "Потребность в ТС",
+            "filename": "PROD_20260519_174703_Потребность в ТС.pdf",
+            "created_at": "2026-05-19T17:47:03.079491",
+            "size_kb": 1600
+          },
+          {
+            "type": "Расчет ГСМ",
+            "filename": "PROD_20260519_174703_Расчет ГСМ.pdf",
+            "created_at": "2026-05-19T17:47:03.079491",
+            "size_kb": 1000
+          }
+        ],
+        "rework_count": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:47:03.079491",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Производственная программа",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:47:03.079491",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'production_period': '2025-02', 'created_by': 'planner@company.com', 'production_requirements': {'truck': {'planned_hours': 160, 'priority': 'high'}, 'excavator': {'planned_hours': 120, 'priority': 'medium'}, 'bulldozer': {'planned_hours': 80, 'priority': 'low'}}, 'fuel_price': 55, 'fuel_consumption_per_km': 0.38}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:47:03.079491",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-05-19T17:45:44.676782",
+    "process_id": "process_2_2_1779201944",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_2_1779201944",
+      "process_key": "process_2",
+      "status": "rework_needed",
+      "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+      "result": {
+        "document_id": "REPAIR_20260519_174544",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": null,
+        "is_third_party": null,
+        "planning_records": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:45:44.676782",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:45:44.676782",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:45:44.676782",
+        "level": "WARNING",
+        "step": "rework",
+        "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+        "type": "system"
+      }
+    ],
+    "status": "rework_needed"
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-05-19T17:45:30.303423",
+    "process_id": "process_2_1_1779201930",
+    "definition_id": "process_2",
+    "variables": {
+      "equipment_type": "crane",
+      "equipment_id": "CRN-089",
+      "equipment_age": 8,
+      "total_operating_hours": 9500,
+      "breakdown_severity": "high",
+      "vin_code": "WDB12345678901234",
+      "equipment_source": "лизинг",
+      "is_leased": true,
+      "created_by": "leasing@company.com"
+    },
+    "result": {
+      "process_instance_id": "process_2_1_1779201930",
+      "process_key": "process_2",
+      "status": "rework_needed",
+      "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+      "result": {
+        "document_id": "REPAIR_20260519_174530",
+        "repair_type": null,
+        "total_cost": 0,
+        "abc_analysis": null,
+        "is_third_party": null,
+        "planning_records": 0
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-19T17:45:30.303423",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса Планирование ремонтных работ",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:45:30.303423",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'crane', 'equipment_id': 'CRN-089', 'equipment_age': 8, 'total_operating_hours': 9500, 'breakdown_severity': 'high', 'vin_code': 'WDB12345678901234', 'equipment_source': 'лизинг', 'is_leased': True, 'created_by': 'leasing@company.com'}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-19T17:45:30.303423",
+        "level": "WARNING",
+        "step": "rework",
+        "message": "Ошибка выполнения процесса: type object 'Process_2' has no attribute 'should_do_major_repair'",
+        "type": "system"
+      }
+    ],
+    "status": "rework_needed"
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-05-18T21:44:52.706453",
+    "process_id": "local_process_2_1779129892",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "local_process_2_1779129892",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-18T21:44:52.706453"
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-18T21:44:52.705455",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса local_process_2_1779129892",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.705455",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'excavator', 'work_volume': 10, 'planned_hours': 30, 'author': 'ivanov@example.com', 'new_document_id': 'DOC-001', 'old_document_id': 'DOC-000', 'force_update': True}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.705455",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.705455",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Начало расчета времени работы",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Расчет завершен. Время работы: 25.0 м/ч",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Анализ необходимости обновления документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Решение: ДА - требуется обновление",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Установка статуса 'Неактуально' для старого документа",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Статус старого документа обновлен",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Отправка уведомления автору",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Уведомление отправлено автору ivanov@example.com",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Создание планирования работы ТС",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Планирование создано: {'document_id': 'DOC-001', 'author': 'ivanov@example.com', 'calculated_time': 25.0, 'status': 'DRAFT', 'created_at': '2026-05-18T21:44:52.706453'}",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:44:52.706453",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-05-18T21:42:15.821336",
+    "process_id": "local_process_1_1779129735",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "local_process_1_1779129735",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-18T21:42:15.821336"
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса local_process_1_1779129735",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'excavator', 'work_volume': 10, 'planned_hours': 30, 'author': 'ivanov@example.com', 'new_document_id': 'DOC-001', 'old_document_id': 'DOC-000', 'force_update': True}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Начало расчета времени работы",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Расчет завершен. Время работы: 25.0 м/ч",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Анализ необходимости обновления документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Решение: ДА - требуется обновление",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Установка статуса 'Неактуально' для старого документа",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Статус старого документа обновлен",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Отправка уведомления автору",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Уведомление отправлено автору ivanov@example.com",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Создание планирования работы ТС",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Планирование создано: {'document_id': 'DOC-001', 'author': 'ivanov@example.com', 'calculated_time': 25.0, 'status': 'DRAFT', 'created_at': '2026-05-18T21:42:15.821336'}",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:42:15.821336",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  },
+  {
+    "id": 1,
+    "timestamp": "2026-05-18T21:35:03.400188",
+    "process_id": "local_process_1_1779129303",
+    "definition_id": "process_1",
+    "variables": {
+      "equipment_type": "excavator",
+      "work_volume": 10,
+      "planned_hours": 30,
+      "author": "ivanov@example.com",
+      "new_document_id": "DOC-001",
+      "old_document_id": "DOC-000",
+      "force_update": true
+    },
+    "result": {
+      "process_instance_id": "local_process_1_1779129303",
+      "status": "success",
+      "message": "Процесс успешно выполнен",
+      "result": {
+        "document_id": "DOC-001",
+        "author": "ivanov@example.com",
+        "calculated_time": 25.0,
+        "status": "DRAFT",
+        "created_at": "2026-05-18T21:35:03.400188"
+      }
+    },
+    "logs": [
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "init",
+        "message": "Создание экземпляра процесса local_process_1_1779129303",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "init",
+        "message": "Процесс создан с переменными: {'equipment_type': 'excavator', 'work_volume': 10, 'planned_hours': 30, 'author': 'ivanov@example.com', 'new_document_id': 'DOC-001', 'old_document_id': 'DOC-000', 'force_update': True}",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "start",
+        "message": "Запуск процесса: Планирование работы ТС",
+        "type": "system"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Начало расчета времени работы",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Авторасчет",
+        "message": "Расчет завершен. Время работы: 25.0 м/ч",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Анализ необходимости обновления документа",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Проверка условия",
+        "message": "Решение: ДА - требуется обновление",
+        "type": "decision"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Установка статуса 'Неактуально' для старого документа",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Обновление статуса",
+        "message": "Статус старого документа обновлен",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Отправка уведомления автору",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Уведомление",
+        "message": "Уведомление отправлено автору ivanov@example.com",
+        "type": "script"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Создание планирования работы ТС",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "Планирование",
+        "message": "Планирование создано: {'document_id': 'DOC-001', 'author': 'ivanov@example.com', 'calculated_time': 25.0, 'status': 'DRAFT', 'created_at': '2026-05-18T21:35:03.400188'}",
+        "type": "user_task"
+      },
+      {
+        "timestamp": "2026-05-18T21:35:03.400188",
+        "level": "INFO",
+        "step": "complete",
+        "message": "Процесс успешно завершен: Процесс успешно выполнен",
+        "type": "system"
+      }
+    ],
+    "status": "success"
+  }
+]

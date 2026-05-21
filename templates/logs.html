@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Логи выполнения процесса - Runa WFE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        /* Две колонки: BPMN схема и логи */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Стили для BPMN схемы */
+        .bpmn-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .bpmn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .bpmn-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+
+        .bpmn-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bpmn-control-btn {
+            background: #f7fafc;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .bpmn-control-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .bpmn-image-container {
+            text-align: center;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bpmn-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .bpmn-image:hover {
+            transform: scale(1.02);
+        }
+
+        .bpmn-placeholder {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .bpmn-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Модальное окно для просмотра схемы в полном размере */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #bbb;
+        }
+
+        /* Стили для логов */
+        .process-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .process-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .process-info code {
+            background: #f7fafc;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .log-controls {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .log-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .log-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .log-btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .log-btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .log-btn-secondary:hover {
+            background: #38a169;
+        }
+
+        .filter-select {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .logs-container {
+            background: #0a0f1a;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid;
+            border-radius: 5px;
+            background: #111827;
+            color: #d1d5db;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-info {
+            border-left-color: #3b82f6;
+        }
+
+        .log-error {
+            border-left-color: #ef4444;
+            background: #1f2937;
+            color: #fca5a5;
+        }
+
+        .log-warning {
+            border-left-color: #f59e0b;
+        }
+
+        .log-script {
+            border-left-color: #10b981;
+        }
+
+        .log-decision {
+            border-left-color: #8b5cf6;
+        }
+
+        .log-user_task {
+            border-left-color: #ec489a;
+        }
+
+        .log-system {
+            border-left-color: #6b7280;
+        }
+
+        .log-timestamp {
+            color: #6b7280;
+            font-size: 11px;
+            margin-right: 10px;
+        }
+
+        .log-level {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .level-INFO {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .level-ERROR {
+            background: #ef4444;
+            color: white;
+        }
+
+        .log-step {
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .log-message {
+            word-wrap: break-word;
+        }
+
+        .empty-logs {
+            text-align: center;
+            padding: 60px;
+            color: #6b7280;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .auto-refresh {
+            animation: blink 1s infinite;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .bpmn-container {
+                position: relative;
+                top: 0;
+            }
+
+            .log-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📋 Детали выполнения процесса</h1>
+        <a href="/history" class="back-btn">← Назад к истории</a>
+    </div>
+
+    <!-- Две колонки: BPMN схема и информация -->
+    <div class="two-columns">
+        <!-- Левая колонка: BPMN схема -->
+        <div class="bpmn-container">
+            <div class="bpmn-header">
+                <h2>📐 BPMN схема процесса</h2>
+                <div class="bpmn-controls">
+                    <button class="bpmn-control-btn" onclick="zoomIn()">🔍 +</button>
+                    <button class="bpmn-control-btn" onclick="zoomOut()">🔍 -</button>
+                    <button class="bpmn-control-btn" onclick="resetZoom()">⟳ Сброс</button>
+                    <button class="bpmn-control-btn" onclick="openModal()">🖼️ Полный экран</button>
+                </div>
+            </div>
+            <div class="bpmn-image-container">
+                {% if bpmn_image %}
+                    <img id="bpmnImage"
+                         src="{{ url_for('static', filename='bpmn_diagrams/' + bpmn_image) }}"
+                         alt="BPMN схема процесса"
+                         style="max-width: 100%; height: auto; cursor: pointer;"
+                         onclick="openModal()">
+                {% else %}
+                    <div class="bpmn-placeholder">
+                        <p>📭 BPMN схема не найдена</p>
+                        <p style="font-size: 12px; margin-top: 10px;">
+                            Поместите файл схемы в папку <code>static/bpmn_diagrams/</code>
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="bpmn-info">
+                <strong>ℹ️ Информация:</strong><br>
+                • Кликните по схеме для увеличения<br>
+                • Используйте кнопки масштабирования для детального просмотра<br>
+                • Схема отображает логику бизнес-процесса
+            </div>
+        </div>
+
+        <!-- Правая колонка: информация и логи -->
+        <div>
+            <div class="process-info">
+                <h3>🔄 Информация о процессе</h3>
+                <div>ID процесса: <code id="processId">{{ process_id }}</code></div>
+                <div id="processDetails"></div>
+            </div>
+
+            <div class="log-controls">
+                <button class="log-btn log-btn-primary" onclick="refreshLogs()">🔄 Обновить логи</button>
+                <button class="log-btn log-btn-secondary" onclick="copyLogs()">📋 Копировать логи</button>
+                <button class="log-btn log-btn-secondary" onclick="downloadLogs()">💾 Скачать логи</button>
+                <button class="log-btn log-btn-secondary" id="autoRefreshBtn" onclick="toggleAutoRefresh()">⏸ Автообновление выкл</button>
+                <select id="levelFilter" class="filter-select" onchange="filterLogs()">
+                    <option value="all">Все уровни</option>
+                    <option value="INFO">INFO</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="WARNING">WARNING</option>
+                </select>
+                <select id="typeFilter" class="filter-select" onchange="filterLogs()">
+                    <option value="all">Все типы</option>
+                    <option value="script">Скрипты</option>
+                    <option value="user_task">Пользовательские задачи</option>
+                    <option value="decision">Решения</option>
+                    <option value="system">Системные</option>
+                </select>
+            </div>
+
+            <div class="logs-container" id="logsContainer">
+                <div id="logsContent">
+                    <div class="empty-logs">Загрузка логов...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для полноэкранного просмотра -->
+<div id="modal" class="modal" onclick="closeModal()">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<script>
+    const processId = '{{ process_id }}';
+    let allLogs = [];
+    let autoRefreshInterval = null;
+    let autoRefreshEnabled = false;
+    let currentZoom = 1;
+
+    window.onload = function() {
+        loadLogs();
+        document.getElementById('processId').textContent = processId;
+    };
+
+    function loadLogs() {
+        fetch(`/api/logs/${processId}`)
+            .then(response => response.json())
+            .then(data => {
+                allLogs = data.logs || [];
+                updateProcessInfo();
+                filterLogs();
+
+                // Обновляем информацию о BPMN схеме
+                if (data.bpmn && data.bpmn.image_url) {
+                    const imgElement = document.getElementById('bpmnImage');
+                    if (imgElement) {
+                        imgElement.src = data.bpmn.image_url;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки логов:', error);
+                document.getElementById('logsContent').innerHTML = '<div class="empty-logs">❌ Ошибка загрузки логов</div>';
+            });
+    }
+
+    function updateProcessInfo() {
+        const stats = {
+            total: allLogs.length,
+            error: allLogs.filter(l => l.level === 'ERROR').length,
+            scripts: allLogs.filter(l => l.type === 'script').length,
+            decisions: allLogs.filter(l => l.type === 'decision').length,
+            user_tasks: allLogs.filter(l => l.type === 'user_task').length
+        };
+
+        document.getElementById('processDetails').innerHTML = `
+            <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                <div>📊 Всего записей: ${stats.total}</div>
+                <div style="color: #ef4444;">❌ Ошибок: ${stats.error}</div>
+                <div style="color: #10b981;">⚙️ Скриптов: ${stats.scripts}</div>
+                <div style="color: #8b5cf6;">🤔 Решений: ${stats.decisions}</div>
+                <div style="color: #ec489a;">👥 Пользовательских задач: ${stats.user_tasks}</div>
+            </div>
+        `;
+    }
+
+    function filterLogs() {
+        const levelFilter = document.getElementById('levelFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+
+        let filteredLogs = allLogs;
+
+        if (levelFilter !== 'all') {
+            filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+        }
+
+        if (typeFilter !== 'all') {
+            filteredLogs = filteredLogs.filter(log => log.type === typeFilter);
+        }
+
+        renderLogs(filteredLogs);
+    }
+
+    function renderLogs(logs) {
+        const logsContent = document.getElementById('logsContent');
+
+        if (logs.length === 0) {
+            logsContent.innerHTML = '<div class="empty-logs">📭 Нет записей логов</div>';
+            return;
+        }
+
+        logsContent.innerHTML = logs.map(log => {
+            const date = new Date(log.timestamp);
+            const formattedTime = date.toLocaleString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            const levelClass = `level-${log.level}`;
+            const typeClass = `log-${log.type || 'system'}`;
+
+            return `
+                <div class="log-entry ${typeClass}">
+                    <div>
+                        <span class="log-timestamp">[${formattedTime}]</span>
+                        <span class="log-level ${levelClass}">${log.level || 'INFO'}</span>
+                        ${log.step ? `<span class="log-step">📍 ${log.step}</span>` : ''}
+                    </div>
+                    <div class="log-message" style="margin-top: 5px;">
+                        ${escapeHtml(log.message)}
+                    </div>
+                    ${log.result ? `<div style="margin-top: 5px; color: #10b981; font-size: 11px;">Результат: ${escapeHtml(JSON.stringify(log.result))}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        // Автопрокрутка вниз
+        const logsContainer = document.getElementById('logsContainer');
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function refreshLogs() {
+        loadLogs();
+    }
+
+    function copyLogs() {
+        const logText = allLogs.map(log => {
+            return `[${log.timestamp}] ${log.level} - ${log.step || ''}: ${log.message}`;
+        }).join('\n');
+
+        navigator.clipboard.writeText(logText).then(() => {
+            alert('Логи скопированы в буфер обмена');
+        }).catch(() => {
+            alert('Ошибка копирования логов');
+        });
+    }
+
+    function downloadLogs() {
+        const logText = allLogs.map(log => {
+            return `[${log.timestamp}] ${log.level} - ${log.step || ''}: ${log.message}`;
+        }).join('\n');
+
+        const blob = new Blob([logText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `process_${processId}_logs.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function toggleAutoRefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        const btn = document.getElementById('autoRefreshBtn');
+
+        if (autoRefreshEnabled) {
+            autoRefreshInterval = setInterval(() => {
+                refreshLogs();
+            }, 3000);
+            btn.textContent = '▶ Автообновление вкл';
+            btn.classList.add('auto-refresh');
+        } else {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            btn.textContent = '⏸ Автообновление выкл';
+            btn.classList.remove('auto-refresh');
+        }
+    }
+
+    // Функции для масштабирования BPMN схемы
+    function zoomIn() {
+        currentZoom = Math.min(currentZoom + 0.1, 3);
+        applyZoom();
+    }
+
+    function zoomOut() {
+        currentZoom = Math.max(currentZoom - 0.1, 0.5);
+        applyZoom();
+    }
+
+    function resetZoom() {
+        currentZoom = 1;
+        applyZoom();
+    }
+
+    function applyZoom() {
+        const img = document.getElementById('bpmnImage');
+        if (img) {
+            img.style.transform = `scale(${currentZoom})`;
+        }
+    }
+
+    // Модальное окно
+    function openModal() {
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modalImage');
+        const img = document.getElementById('bpmnImage');
+
+        if (img) {
+            modal.style.display = 'block';
+            modalImg.src = img.src;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    // Очистка интервала при уходе со страницы
+    window.onbeforeunload = function() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    };
+</script>
+</body>
+</html>

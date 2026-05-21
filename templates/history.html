@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История запусков процессов - Runa WFE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-info {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #38a169;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .filters {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .history-table {
+            background: white;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f7fafc;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .view-logs-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .view-logs-btn:hover {
+            background: #3182ce;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .page-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 История запусков процессов</h1>
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-primary">🏠 Главная</a>
+            <button onclick="clearHistory()" class="btn btn-danger">🗑️ Очистить историю</button>
+            <button onclick="refreshData()" class="btn btn-info">🔄 Обновить</button>
+        </div>
+    </div>
+
+    <div class="stats" id="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalCount">0</div>
+            <div class="stat-label">Всего запусков</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="successCount">0</div>
+            <div class="stat-label">Успешных</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="errorCount">0</div>
+            <div class="stat-label">С ошибками</div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-group">
+            <input type="text" id="searchInput" class="filter-input" placeholder="Поиск по ID процесса, автору..." onkeyup="filterTable()">
+            <select id="statusFilter" class="filter-input" onchange="filterTable()">
+                <option value="">Все статусы</option>
+                <option value="success">Успешные</option>
+                <option value="error">С ошибками</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="history-table">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата и время</th>
+                    <th>ID процесса</th>
+                    <th>Тип ТС</th>
+                    <th>Автор</th>
+                    <th>Статус</th>
+                    <th>Результат</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="8" class="empty-state">Загрузка данных...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+    let allRecords = [];
+    let filteredRecords = [];
+    let currentPage = 1;
+    const itemsPerPage = 20;
+
+    // Загрузка истории при загрузке страницы
+    window.onload = function() {
+        loadHistory();
+    };
+
+    function loadHistory() {
+    showLoading();
+
+    fetch('/api/history?limit=100')
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+
+            if (!data.success) {
+                console.error('Ошибка:', data.error);
+                showError('Ошибка загрузки данных: ' + (data.error || 'Неизвестная ошибка'));
+                return;
+            }
+
+            allRecords = data.records || [];
+            updateStats();
+            filterTable();
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Ошибка загрузки истории:', error);
+            showError('Ошибка подключения к серверу: ' + error.message);
+        });
+    }
+
+    function showError(message) {
+    const tbody = document.getElementById('tableBody');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">❌ ${message}</td></tr>`;
+    }
+    console.error(message);
+}
+
+    function updateStats() {
+    const total = allRecords.length;
+    const success = allRecords.filter(r => r.status === 'success').length;
+    const error = allRecords.filter(r => r.status === 'error').length;
+
+    const totalEl = document.getElementById('totalCount');
+    const successEl = document.getElementById('successCount');
+    const errorEl = document.getElementById('errorCount');
+
+    if (totalEl) totalEl.textContent = total;
+    if (successEl) successEl.textContent = success;
+    if (errorEl) errorEl.textContent = error;
+    }
+
+    function filterTable() {
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || '';
+
+    filteredRecords = allRecords.filter(record => {
+        // Фильтр по статусу
+        if (statusFilter && record.status !== statusFilter) return false;
+
+        // Поиск по тексту
+        if (searchTerm) {
+            const instanceIdMatch = record.instance_id && record.instance_id.toLowerCase().includes(searchTerm);
+            const authorMatch = record.author && record.author.toLowerCase().includes(searchTerm);
+            const equipmentMatch = record.equipment_type && record.equipment_type.toLowerCase().includes(searchTerm);
+            const procNameMatch = record.proc_name && record.proc_name.toLowerCase().includes(searchTerm);
+
+            if (!instanceIdMatch && !authorMatch && !equipmentMatch && !procNameMatch) return false;
+        }
+
+        return true;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+    function showLoading() {
+    const tbody = document.getElementById('tableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Загрузка данных...</td></tr>';
+    }
+    }
+
+    function hideLoading() {
+    // Обработка завершения загрузки
+    }
+
+    function renderTable() {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageRecords = filteredRecords.slice(startIndex, endIndex);
+
+    const tbody = document.getElementById('tableBody');
+
+    if (pageRecords.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Нет записей</td></tr>';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
+    tbody.innerHTML = pageRecords.map(record => {
+        // Форматируем дату
+        let formattedDate = record.timestamp || '—';
+        if (formattedDate === '—' && record.timestamp_formatted) {
+            formattedDate = record.timestamp_formatted;
+        }
+
+        // ID процесса
+        const processIdDisplay = record.instance_id || '—';
+
+        // Статус
+        const statusText = record.status_text || (record.status === 'success' ? '✓ Успешно' : '✗ Ошибка');
+
+        // Результат
+        const resultDisplay = record.result_summary || '—';
+
+        return `
+            <tr>
+                <td>${escapeHtml(String(record.id || '—'))}</td>
+                <td>${escapeHtml(formattedDate)}</td>
+                <td><code>${escapeHtml(processIdDisplay)}</code></td>
+                <td>${escapeHtml(record.equipment_type || '—')}</td>
+                <td>${escapeHtml(record.author || '—')}</td>
+                <td>
+                    <span class="status-badge status-${record.status || 'unknown'}">
+                        ${escapeHtml(statusText)}
+                    </span>
+                </td>
+                <td>${escapeHtml(resultDisplay)}</td>
+                <td>
+                    <button class="view-logs-btn" onclick="viewLogs('${escapeHtml(record.instance_id)}')">
+                        📋 Логи
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    renderPagination();
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+        const pagination = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        for (let i = 1; i <= Math.min(totalPages, 10); i++) {
+            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+        }
+
+        if (totalPages > 10) {
+            html += '<span style="padding: 8px;">...</span>';
+            html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+        }
+
+        pagination.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        renderTable();
+    }
+
+    function viewLogs(processId) {
+    if (processId && processId !== '—') {
+        window.location.href = `/logs/${encodeURIComponent(processId)}`;
+    } else {
+        alert('ID процесса не найден');
+    }
+}
+
+    function clearHistory() {
+        if (confirm('Вы уверены, что хотите очистить всю историю? Это действие нельзя отменить.')) {
+            fetch('/api/history', { method: 'DELETE' })
+                .then(response => response.json())
+                .then(() => {
+                    loadHistory();
+                })
+                .catch(error => {
+                    console.error('Ошибка очистки истории:', error);
+                    alert('Ошибка при очистке истории');
+                });
+        }
+    }
+
+    function refreshData() {
+        loadHistory();
+    }
+
+    function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+    }
+</script>
+</body>
+</html>
