@@ -1,0 +1,24 @@
+{# templates/form_macros.html #}
+{% macro render_field(var) %}
+<div class="form-group">
+    <label for="{{ var.var_name }}">
+        {{ var.description or var.var_name }}
+        {% if var.is_required %}<span style="color: red;">*</span>{% endif %}
+    </label>
+    {% if var.var_type == 'boolean' %}
+        <select name="{{ var.var_name }}" id="{{ var.var_name }}" class="form-control" {% if var.is_required %}required{% endif %}>
+            <option value="true">Да</option>
+            <option value="false" {% if var.default_value == 'false' %}selected{% endif %}>Нет</option>
+        </select>
+    {% elif var.var_type == 'number' %}
+        <input type="number" name="{{ var.var_name }}" id="{{ var.var_name }}" class="form-control"
+               value="{{ var.default_value or '' }}" {% if var.is_required %}required{% endif %}>
+    {% else %}
+        <input type="text" name="{{ var.var_name }}" id="{{ var.var_name }}" class="form-control"
+               value="{{ var.default_value or '' }}" {% if var.is_required %}required{% endif %}>
+    {% endif %}
+    {% if var.description %}
+        <small class="form-text text-muted">{{ var.description }}</small>
+    {% endif %}
+</div>
+{% endmacro %}
