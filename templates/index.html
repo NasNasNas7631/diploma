@@ -3,290 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Запуск процессов</title>
+    <title>Управление процессами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f5f5f5;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
+        .navbar-brand {
             font-weight: bold;
         }
-        input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        textarea {
-            height: 120px;
-            resize: vertical;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #007bff;
+        .user-info {
             color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+            margin-right: 15px;
         }
-        button:hover {
-            background: #0056b3;
-        }
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 4px;
-            display: none;
-        }
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .loading {
-            background: #e2e3e5;
-            color: #383d41;
-            border: 1px solid #d6d8db;
-        }
-        .example {
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-        .example pre {
-            margin: 5px 0;
+        .user-info i {
+            margin-right: 5px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <a href="/history" class="btn btn-info">📊 История</a>
-    <h1>Запуск процесса</h1>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-tasks"></i> Управление процессами
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="user-info">
+                    <i class="fas fa-user"></i> {{ user.username }}
+                </div>
+                <a href="/logout" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </a>
+            </div>
+        </div>
+    </nav>
 
-    <label for="processSelect">Выберите процесс:</label>
-    <select id="processSelect" required>
-        <option value="">-- выберите --</option>
-    </select>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i class="fas fa-project-diagram"></i> Доступные процессы</h1>
+                <p class="text-muted">Выберите процесс для запуска</p>
+            </div>
+            <div class="col-auto">
+                <a href="/history" class="btn btn-info me-2">
+                    <i class="fas fa-history"></i> История
+                </a>
+            </div>
+        </div>
 
-    <div id="dynamicForm"></div>
-    <button id="submitBtn" style="display:none;">♦ Запустить процесс ♦</button>
-    <div id="messageBox" class="message"></div>
-</div>
+        <div class="row">
+            {% for process in processes %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-cogs"></i> {{ process.name }}
+                        </h5>
+                        <p class="card-text">{{ process.description }}</p>
+                        <p class="text-muted small">
+                            <i class="fas fa-code-branch"></i> ID: {{ process.id }}<br>
+                            <i class="fas fa-variable"></i> Переменных: {{ process.variables|length }}
+                        </p>
+                        <button class="btn btn-primary start-process-btn"
+                                data-process-id="{{ process.id }}"
+                                data-process-name="{{ process.name }}">
+                            <i class="fas fa-play"></i> Запустить процесс
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-<script>
-    let currentSchema = null;
+    <!-- Модальное окно для формы процесса -->
+    <div class="modal fade" id="processModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Запуск процесса</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="process-form-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="submit-process">Запустить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    // Загрузка списка процессов из /api/processes
-    fetch('/api/processes')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const select = document.getElementById('processSelect');
-                data.processes.forEach(proc => {
-                    const option = document.createElement('option');
-                    const procId = proc.id || proc.proc_id || proc.definition_id;
-                    if (!procId) return;
-                    option.value = procId;
-                    option.textContent = proc.name || proc.proc_name || procId;
-                    select.appendChild(option);
-                });
-            }
-        });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentProcessId = null;
+        let currentFormSchema = null;
 
-    document.getElementById('processSelect').addEventListener('change', function() {
-        const procId = this.value;
-        if (!procId) return;
-        fetch(`/api/processes/${procId}/form_schema`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    currentSchema = data.schema;
-                    renderForm(data.schema.fields);
-                    document.getElementById('submitBtn').style.display = 'block';
-                } else {
-                    document.getElementById('dynamicForm').innerHTML = '<p class="error">Ошибка загрузки формы</p>';
-                }
+        // Обработчики кнопок запуска процессов
+        document.querySelectorAll('.start-process-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                currentProcessId = btn.dataset.processId;
+                await loadFormSchema(currentProcessId);
+                const modal = new bootstrap.Modal(document.getElementById('processModal'));
+                modal.show();
             });
-    });
-
-    function renderForm(fields) {
-        const container = document.getElementById('dynamicForm');
-        container.innerHTML = '';
-        fields.forEach(field => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'form-field';
-            wrapper.style.marginBottom = '15px';
-
-            const label = document.createElement('label');
-            label.textContent = field.label + (field.required ? ' *' : '');
-            label.htmlFor = field.name;
-            label.style.display = 'block';
-            label.style.fontWeight = 'bold';
-            label.style.marginBottom = '5px';
-
-            let input;
-
-            if (field.type === 'select') {
-                input = document.createElement('select');
-                input.name = field.name;
-                input.id = field.name;
-                const emptyOption = document.createElement('option');
-                emptyOption.value = '';
-                emptyOption.textContent = '-- выберите --';
-                input.appendChild(emptyOption);
-                field.options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                if (field.default && field.default !== undefined) {
-                    input.value = field.default;
-                }
-            }
-            else if (field.type === 'checkbox') {
-                input = document.createElement('input');
-                input.type = 'checkbox';
-                input.name = field.name;
-                input.id = field.name;
-                if (field.default === true) input.checked = true;
-                // checkbox не требует step и placeholder
-            }
-            else if (field.type === 'json') {
-                input = document.createElement('textarea');
-                input.name = field.name;
-                input.id = field.name;
-                input.rows = 6;
-                input.style.fontFamily = 'monospace';
-                if (field.placeholder) input.placeholder = field.placeholder;
-                if (field.default && typeof field.default === 'object') {
-                    input.value = JSON.stringify(field.default, null, 2);
-                }
-            }
-            else {
-                input = document.createElement('input');
-                input.type = field.type || 'text';
-                input.name = field.name;
-                input.id = field.name;
-                if (field.placeholder) input.placeholder = field.placeholder;
-                if (field.step) input.step = field.step;
-                if (field.default !== undefined && field.default !== null) input.value = field.default;
-            }
-
-            input.required = field.required;
-            wrapper.appendChild(label);
-            wrapper.appendChild(input);
-            container.appendChild(wrapper);
         });
-    }
 
-    document.getElementById('submitBtn').addEventListener('click', async () => {
-        const procId = document.getElementById('processSelect').value;
-        if (!procId) {
-            showMessage('Выберите процесс', 'error');
-            return;
-        }
-        if (!currentSchema) {
-            showMessage('Сначала загрузите форму процесса', 'error');
-            return;
-        }
+        // Загрузка схемы формы
+        async function loadFormSchema(processId) {
+            try {
+                const response = await fetch(`/api/processes/${processId}/form_schema`);
+                const data = await response.json();
 
-        const variables = {};
-        for (const field of currentSchema.fields) {
-            const el = document.getElementById(field.name);
-            if (!el) continue;
-
-            let value;
-            if (field.type === 'checkbox') {
-                value = el.checked;
-            }
-            else if (field.type === 'json') {
-                const rawValue = el.value.trim();
-                if (rawValue === '') {
-                    value = null;
+                if (data.success) {
+                    currentFormSchema = data.schema;
+                    renderForm(data.schema);
                 } else {
-                    try {
-                        value = JSON.parse(rawValue);
-                    } catch (e) {
-                        showMessage(`Ошибка в поле "${field.label}": неверный JSON`, 'error');
-                        return;
+                    showError('Не удалось загрузить форму процесса');
+                }
+            } catch (error) {
+                console.error('Error loading form schema:', error);
+                showError('Ошибка загрузки формы');
+            }
+        }
+
+        // Рендеринг формы
+        function renderForm(schema) {
+            const container = document.getElementById('process-form-container');
+            container.innerHTML = '';
+
+            if (schema && schema.fields) {
+                schema.fields.forEach(field => {
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'mb-3';
+
+                    const label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.textContent = field.label + (field.required ? ' *' : '');
+                    label.htmlFor = field.name;
+
+                    let input;
+                    if (field.type === 'textarea') {
+                        input = document.createElement('textarea');
+                        input.className = 'form-control';
+                        input.rows = 3;
+                    } else if (field.type === 'select' && field.options) {
+                        input = document.createElement('select');
+                        input.className = 'form-select';
+                        field.options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.value;
+                            opt.textContent = option.label;
+                            input.appendChild(opt);
+                        });
+                    } else if (field.type === 'checkbox') {
+                        input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.className = 'form-check-input';
+                        label.className = 'form-check-label';
+                        formGroup.className = 'form-check mb-3';
+                    } else {
+                        input = document.createElement('input');
+                        input.type = field.type || 'text';
+                        input.className = 'form-control';
                     }
-                }
-            }
-            else {
-                value = el.value;
-                // Приводим числовые поля к number
-                if (field.type === 'number' && value !== '') {
-                    value = Number(value);
-                }
-            }
-            // Добавляем только непустые значения (по желанию)
-            if (value !== '' && value !== null && value !== undefined) {
-                variables[field.name] = value;
+
+                    input.id = field.name;
+                    input.name = field.name;
+                    if (field.required) input.required = true;
+                    if (field.placeholder) input.placeholder = field.placeholder;
+
+                    if (field.type === 'checkbox') {
+                        formGroup.appendChild(input);
+                        formGroup.appendChild(label);
+                    } else {
+                        formGroup.appendChild(label);
+                        formGroup.appendChild(input);
+                    }
+
+                    if (field.description) {
+                        const helpText = document.createElement('div');
+                        helpText.className = 'form-text text-muted';
+                        helpText.textContent = field.description;
+                        formGroup.appendChild(helpText);
+                    }
+
+                    container.appendChild(formGroup);
+                });
+            } else {
+                container.innerHTML = '<p class="text-muted">Нет дополнительных параметров для ввода</p>';
             }
         }
 
-        const response = await fetch('/start_process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                definition_id: procId,
-                variables: variables,
-                created_by: variables.author || variables.created_by || 'system'
-            })
+        // Обработка запуска процесса
+        document.getElementById('submit-process').addEventListener('click', async () => {
+            const form = document.getElementById('process-form-container');
+            const variables = {};
+
+            if (currentFormSchema && currentFormSchema.fields) {
+                currentFormSchema.fields.forEach(field => {
+                    const element = document.getElementById(field.name);
+                    if (element) {
+                        if (field.type === 'checkbox') {
+                            variables[field.name] = element.checked;
+                        } else {
+                            variables[field.name] = element.value;
+                        }
+                    }
+                });
+            }
+
+            // Добавляем автора
+            variables.author = '{{ user.username }}';
+
+            try {
+                const response = await fetch('/start_process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        definition_id: currentProcessId,
+                        variables: variables,
+                        created_by: '{{ user.username }}'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Процесс запущен успешно!\nID процесса: ${result.process_instance_id}\nРезультат: ${JSON.stringify(result.result)}`);
+                    bootstrap.Modal.getInstance(document.getElementById('processModal')).hide();
+                    // Обновляем страницу для отображения нового запуска
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(`Ошибка: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error starting process:', error);
+                alert('Ошибка при запуске процесса');
+            }
         });
-        const result = await response.json();
-        if (response.ok && result.success) {
-            showMessage(result.message || 'Процесс успешно запущен', 'success');
-            // Очистка формы опционально
-            // document.getElementById('dynamicForm').innerHTML = '';
-            // document.getElementById('processSelect').value = '';
-            // document.getElementById('submitBtn').style.display = 'none';
-        } else {
-            showMessage(`Ошибка: ${result.error || result.message || 'Неизвестная ошибка'}`, 'error');
-        }
-    });
 
-    function showMessage(text, type) {
-        const messageBox = document.getElementById('messageBox');
-        messageBox.textContent = text;
-        messageBox.className = `message ${type}`;
-        messageBox.style.display = 'block';
-        if (type !== 'loading') {
-            setTimeout(() => {
-                if (messageBox.className.includes(type)) {
-                    messageBox.style.display = 'none';
-                }
-            }, 5000);
+        function showError(message) {
+            const container = document.getElementById('process-form-container');
+            container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
         }
-    }
-</script>
+    </script>
 </body>
 </html>

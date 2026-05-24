@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>История запусков процессов - Runa WFE</title>
+    <title>История запусков процессов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,13 +15,23 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
             min-height: 100vh;
-            padding: 20px;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .user-info {
+            color: white;
+            margin-right: 15px;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         .header {
@@ -36,6 +48,7 @@
         .header h1 {
             color: #333;
             font-size: 28px;
+            margin: 0;
         }
 
         .nav-buttons {
@@ -159,6 +172,7 @@
 
         tr:hover {
             background: #f7fafc;
+            cursor: pointer;
         }
 
         .status-badge {
@@ -175,6 +189,16 @@
         }
 
         .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-in_progress {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .status-rework {
             background: #fed7d7;
             color: #742a2a;
         }
@@ -218,6 +242,7 @@
             background: white;
             cursor: pointer;
             border-radius: 5px;
+            transition: all 0.3s;
         }
 
         .page-btn:hover {
@@ -284,6 +309,7 @@
         .modal-header h2 {
             color: #333;
             font-size: 22px;
+            margin: 0;
         }
 
         .close-modal {
@@ -360,392 +386,436 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>📊 История запусков процессов</h1>
-        <div class="nav-buttons">
-            <a href="/" class="btn btn-primary">🏠 Главная</a>
-            <button onclick="clearHistory()" class="btn btn-danger">🗑️ Очистить историю</button>
-            <button onclick="refreshData()" class="btn btn-info">🔄 Обновить</button>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-tasks"></i> Управление процессами
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="user-info">
+                    <i class="fas fa-user"></i> {{ user.username }}
+                </div>
+                <a href="/logout" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-history"></i> История запусков процессов</h1>
+            <div class="nav-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+                <button onclick="clearHistory()" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Очистить историю
+                </button>
+                <button onclick="refreshData()" class="btn btn-info">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
+            </div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Всего запусков</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="successCount">0</div>
+                <div class="stat-label">Успешных</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="errorCount">0</div>
+                <div class="stat-label">С ошибками</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <input type="text" id="searchInput" class="filter-input" placeholder="🔍 Поиск по ID процесса, автору, типу ТС..." onkeyup="filterTable()">
+                <select id="statusFilter" class="filter-input" onchange="filterTable()">
+                    <option value="">Все статусы</option>
+                    <option value="success">✓ Успешные</option>
+                    <option value="error">✗ С ошибками</option>
+                    <option value="in_progress">⟳ В процессе</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="history-table">
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Дата и время</th>
+                        <th>Название процесса</th>
+                        <th>Тип ТС</th>
+                        <th>Автор</th>
+                        <th>Статус</th>
+                        <th>Результат</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="fas fa-spinner fa-spin"></i> Загрузка данных...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Модальное окно для детального просмотра -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Детали выполнения процесса</h2>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalDetails">
+                <div style="text-align:center; padding:20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="stats" id="stats">
-        <div class="stat-card">
-            <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">Всего запусков</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="successCount">0</div>
-            <div class="stat-label">Успешных</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="errorCount">0</div>
-            <div class="stat-label">С ошибками</div>
-        </div>
-    </div>
+    <script>
+        let allRecords = [];
+        let filteredRecords = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
 
-    <div class="filters">
-        <div class="filter-group">
-            <input type="text" id="searchInput" class="filter-input" placeholder="Поиск по ID процесса, автору..." onkeyup="filterTable()">
-            <select id="statusFilter" class="filter-input" onchange="filterTable()">
-                <option value="">Все статусы</option>
-                <option value="success">Успешные</option>
-                <option value="error">С ошибками</option>
-            </select>
-        </div>
-    </div>
+        // Загрузка истории при загрузке страницы
+        window.onload = function() {
+            loadHistory();
+        };
 
-    <div class="history-table">
-        <table id="historyTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Дата и время</th>
-                    <th>ID процесса</th>
-                    <th>Тип ТС</th>
-                    <th>Автор</th>
-                    <th>Статус</th>
-                    <th>Результат</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr>
-                    <td colspan="8" class="empty-state">Загрузка данных...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        function loadHistory() {
+            showLoading();
 
-    <div class="pagination" id="pagination"></div>
-</div>
-
-<!-- Модальное окно для детального просмотра -->
-<div id="detailsModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>📄 Детали выполнения процесса</h2>
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-        </div>
-        <div id="modalDetails">
-            <div style="text-align:center; padding:20px;">Загрузка...</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let allRecords = [];
-    let filteredRecords = [];
-    let currentPage = 1;
-    const itemsPerPage = 20;
-
-    // Загрузка истории при загрузке страницы
-    window.onload = function() {
-        loadHistory();
-    };
-
-    function loadHistory() {
-        showLoading();
-
-        fetch('/api/history?limit=100')
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-
-                if (!data.success) {
-                    console.error('Ошибка:', data.error);
-                    showError('Ошибка загрузки данных: ' + (data.error || 'Неизвестная ошибка'));
-                    return;
-                }
-
-                allRecords = data.records || [];
-                updateStats();
-                filterTable();
-            })
-            .catch(error => {
-                hideLoading();
-                console.error('Ошибка загрузки истории:', error);
-                showError('Ошибка подключения к серверу: ' + error.message);
-            });
-    }
-
-    function showError(message) {
-        const tbody = document.getElementById('tableBody');
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">❌ ${message}</td></tr>`;
-        }
-        console.error(message);
-    }
-
-    function updateStats() {
-        const total = allRecords.length;
-        const success = allRecords.filter(r => r.status === 'success').length;
-        const error = allRecords.filter(r => r.status === 'error').length;
-
-        const totalEl = document.getElementById('totalCount');
-        const successEl = document.getElementById('successCount');
-        const errorEl = document.getElementById('errorCount');
-
-        if (totalEl) totalEl.textContent = total;
-        if (successEl) successEl.textContent = success;
-        if (errorEl) errorEl.textContent = error;
-    }
-
-    function filterTable() {
-        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        const statusFilter = document.getElementById('statusFilter')?.value || '';
-
-        filteredRecords = allRecords.filter(record => {
-            if (statusFilter && record.status !== statusFilter) return false;
-
-            if (searchTerm) {
-                const instanceIdMatch = record.instance_id && record.instance_id.toLowerCase().includes(searchTerm);
-                const authorMatch = record.author && record.author.toLowerCase().includes(searchTerm);
-                const equipmentMatch = record.equipment_type && record.equipment_type.toLowerCase().includes(searchTerm);
-                const procNameMatch = record.proc_name && record.proc_name.toLowerCase().includes(searchTerm);
-
-                if (!instanceIdMatch && !authorMatch && !equipmentMatch && !procNameMatch) return false;
-            }
-            return true;
-        });
-
-        currentPage = 1;
-        renderTable();
-    }
-
-    function showLoading() {
-        const tbody = document.getElementById('tableBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Загрузка данных...</td></tr>';
-        }
-    }
-
-    function hideLoading() {
-        // не требуется дополнительных действий
-    }
-
-    function renderTable() {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageRecords = filteredRecords.slice(startIndex, endIndex);
-
-        const tbody = document.getElementById('tableBody');
-
-        if (pageRecords.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Нет записей</td></tr>';
-            document.getElementById('pagination').innerHTML = '';
-            return;
-        }
-
-        tbody.innerHTML = pageRecords.map(record => {
-            let formattedDate = record.timestamp || '—';
-            if (formattedDate === '—' && record.timestamp_formatted) {
-                formattedDate = record.timestamp_formatted;
-            }
-
-            const processIdDisplay = record.instance_id || '—';
-            const statusText = record.status_text || (record.status === 'success' ? '✓ Успешно' : '✗ Ошибка');
-            const resultDisplay = record.result_summary || '—';
-
-            return `
-                <tr>
-                    <td>${escapeHtml(String(record.id || '—'))}</td>
-                    <td>${escapeHtml(formattedDate)}</td>
-                    <td><code>${escapeHtml(processIdDisplay)}</code></td>
-                    <td>${escapeHtml(record.equipment_type || '—')}</td>
-                    <td>${escapeHtml(record.author || '—')}</td>
-                    <td>
-                        <span class="status-badge status-${record.status || 'unknown'}">
-                            ${escapeHtml(statusText)}
-                        </span>
-                    </td>
-                    <td>${escapeHtml(resultDisplay)}</td>
-                    <td>
-                        <button class="view-details-btn" onclick="showDetails('${escapeHtml(record.instance_id)}')">
-                            📄 Детали
-                        </button>
-                        <button class="view-logs-btn" onclick="viewLogs('${escapeHtml(record.instance_id)}')">
-                            📋 Логи
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        renderPagination();
-    }
-
-    function renderPagination() {
-        const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
-        const pagination = document.getElementById('pagination');
-
-        if (totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-        }
-
-        let html = '';
-        for (let i = 1; i <= Math.min(totalPages, 10); i++) {
-            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-        }
-
-        if (totalPages > 10) {
-            html += '<span style="padding: 8px;">...</span>';
-            html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
-        }
-
-        pagination.innerHTML = html;
-    }
-
-    function goToPage(page) {
-        currentPage = page;
-        renderTable();
-    }
-
-    function viewLogs(processId) {
-        if (processId && processId !== '—') {
-            window.location.href = `/logs/${encodeURIComponent(processId)}`;
-        } else {
-            alert('ID процесса не найден');
-        }
-    }
-
-    // Функция показа деталей в модальном окне (переменные + результат в виде формы)
-    function showDetails(instanceId) {
-        if (!instanceId || instanceId === '—') {
-            alert('ID процесса не указан');
-            return;
-        }
-
-        const modal = document.getElementById('detailsModal');
-        const modalDetails = document.getElementById('modalDetails');
-        modalDetails.innerHTML = '<div style="text-align:center; padding:20px;">Загрузка данных...</div>';
-        modal.style.display = 'block';
-
-        fetch(`/api/logs/${instanceId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    modalDetails.innerHTML = `<div style="color:red; padding:20px;">Ошибка загрузки деталей: ${data.error || 'Неизвестная ошибка'}</div>`;
-                    return;
-                }
-
-                const processInfo = data.process_info || {};
-                const variables = processInfo.variables || {};
-                const result = data.result || {};
-                const procName = processInfo.proc_name || 'Неизвестный процесс';
-                const status = processInfo.status || 'UNKNOWN';
-                const started = processInfo.started_at_formatted || '—';
-                const completed = processInfo.completed_at_formatted || '—';
-                const duration = processInfo.duration_seconds ? `${processInfo.duration_seconds} сек` : '—';
-                const errorMsg = processInfo.error_message || null;
-
-                // Формируем HTML с отображением переменных и результата в виде удобной таблицы/формы
-                let html = `
-                    <div class="details-section">
-                        <h3>🔷 Общая информация</h3>
-                        <div class="formatted-data">
-                            <table>
-                                <tr><td>Название процесса:</td><td><strong>${escapeHtml(procName)}</strong></td></tr>
-                                <tr><td>Статус:</td><td><span class="status-badge status-${status === 'COMPLETED' ? 'success' : 'error'}">${escapeHtml(status)}</span></td></tr>
-                                <tr><td>Начало:</td><td>${escapeHtml(started)}</td></tr>
-                                <tr><td>Завершение:</td><td>${escapeHtml(completed)}</td></tr>
-                                <tr><td>Длительность:</td><td>${escapeHtml(duration)}</td></tr>
-                `;
-                if (errorMsg) {
-                    html += `<tr><td>Ошибка:</td><td style="color:#e53e3e;">${escapeHtml(errorMsg)}</td></tr>`;
-                }
-                html += `</table></div></div>`;
-
-                // Переменные процесса (входные данные)
-                html += `<div class="details-section">
-                            <h3>📥 Входные переменные</h3>
-                            <div class="formatted-data">
-                `;
-                if (Object.keys(variables).length === 0) {
-                    html += `<p>Нет переменных</p>`;
-                } else {
-                    html += `<table>`;
-                    for (const [key, value] of Object.entries(variables)) {
-                        let displayValue;
-                        if (typeof value === 'object') {
-                            displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
-                        } else {
-                            displayValue = escapeHtml(String(value));
-                        }
-                        html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
-                    }
-                    html += `</table>`;
-                }
-                html += `</div></div>`;
-
-                // Результат выполнения (выходные данные)
-                html += `<div class="details-section">
-                            <h3>📤 Результат выполнения</h3>
-                            <div class="formatted-data">
-                `;
-                if (Object.keys(result).length === 0) {
-                    html += `<p>Нет данных результата</p>`;
-                } else {
-                    html += `<table>`;
-                    for (const [key, value] of Object.entries(result)) {
-                        let displayValue;
-                        if (typeof value === 'object') {
-                            displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
-                        } else {
-                            displayValue = escapeHtml(String(value));
-                        }
-                        html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
-                    }
-                    html += `</table>`;
-                }
-                html += `</div></div>`;
-
-                modalDetails.innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки деталей:', error);
-                modalDetails.innerHTML = `<div style="color:red; padding:20px;">Ошибка подключения: ${error.message}</div>`;
-            });
-    }
-
-    function closeModal() {
-        document.getElementById('detailsModal').style.display = 'none';
-    }
-
-    // Закрытие модального окна при клике вне его области
-    window.onclick = function(event) {
-        const modal = document.getElementById('detailsModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-    };
-
-    function clearHistory() {
-        if (confirm('Вы уверены, что хотите очистить всю историю? Это действие нельзя отменить.')) {
-            fetch('/api/history', { method: 'DELETE' })
+            fetch('/api/history?limit=100')
                 .then(response => response.json())
-                .then(() => {
-                    loadHistory();
+                .then(data => {
+                    hideLoading();
+
+                    if (!data.success) {
+                        console.error('Ошибка:', data.error);
+                        showError('Ошибка загрузки данных: ' + (data.error || 'Неизвестная ошибка'));
+                        return;
+                    }
+
+                    allRecords = data.records || [];
+                    updateStats();
+                    filterTable();
                 })
                 .catch(error => {
-                    console.error('Ошибка очистки истории:', error);
-                    alert('Ошибка при очистке истории');
+                    hideLoading();
+                    console.error('Ошибка загрузки истории:', error);
+                    showError('Ошибка подключения к серверу: ' + error.message);
                 });
         }
-    }
 
-    function refreshData() {
-        loadHistory();
-    }
+        function showError(message) {
+            const tbody = document.getElementById('tableBody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </td></tr>`;
+            }
+            console.error(message);
+        }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-</script>
+        function updateStats() {
+            const total = allRecords.length;
+            const success = allRecords.filter(r => r.status === 'success').length;
+            const error = allRecords.filter(r => r.status === 'error').length;
+
+            const totalEl = document.getElementById('totalCount');
+            const successEl = document.getElementById('successCount');
+            const errorEl = document.getElementById('errorCount');
+
+            if (totalEl) totalEl.textContent = total;
+            if (successEl) successEl.textContent = success;
+            if (errorEl) errorEl.textContent = error;
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+
+            filteredRecords = allRecords.filter(record => {
+                if (statusFilter && record.status !== statusFilter) return false;
+
+                if (searchTerm) {
+                    const instanceIdMatch = record.instance_id && record.instance_id.toLowerCase().includes(searchTerm);
+                    const authorMatch = record.author && record.author.toLowerCase().includes(searchTerm);
+                    const equipmentMatch = record.equipment_type && record.equipment_type.toLowerCase().includes(searchTerm);
+                    const procNameMatch = record.proc_name && record.proc_name.toLowerCase().includes(searchTerm);
+
+                    if (!instanceIdMatch && !authorMatch && !equipmentMatch && !procNameMatch) return false;
+                }
+                return true;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function showLoading() {
+            const tbody = document.getElementById('tableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Загрузка данных...</td></tr>';
+            }
+        }
+
+        function hideLoading() {
+            // не требуется дополнительных действий
+        }
+
+        function renderTable() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageRecords = filteredRecords.slice(startIndex, endIndex);
+
+            const tbody = document.getElementById('tableBody');
+
+            if (pageRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i> Нет записей</td></tr>';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageRecords.map(record => {
+                let formattedDate = record.timestamp || '—';
+                if (formattedDate === '—' && record.timestamp_formatted) {
+                    formattedDate = record.timestamp_formatted;
+                }
+
+                const statusClass = record.status === 'success' ? 'success' :
+                                   (record.status === 'error' ? 'error' :
+                                   (record.status === 'in_progress' ? 'in_progress' : 'unknown'));
+                const statusText = record.status_text || (record.status === 'success' ? '✓ Успешно' :
+                                                          (record.status === 'error' ? '✗ Ошибка' :
+                                                          (record.status === 'in_progress' ? '⟳ В процессе' : record.status)));
+                const resultDisplay = record.result_summary || '—';
+
+                return `
+                    <tr onclick="viewLogs('${escapeHtml(record.instance_id)}')">
+                        <td>${escapeHtml(String(record.id || '—'))}</td>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td><strong>${escapeHtml(record.proc_name || '—')}</strong></td>
+                        <td>${escapeHtml(record.equipment_type || '—')}</td>
+                        <td>${escapeHtml(record.author || '—')}</td>
+                        <td>
+                            <span class="status-badge status-${statusClass}">
+                                ${escapeHtml(statusText)}
+                            </span>
+                        </td>
+                        <td>${escapeHtml(resultDisplay)}</td>
+                        <td onclick="event.stopPropagation()">
+                            <button class="view-details-btn" onclick="showDetails('${escapeHtml(record.instance_id)}')">
+                                <i class="fas fa-info-circle"></i> Детали
+                            </button>
+                            <button class="view-logs-btn" onclick="viewLogs('${escapeHtml(record.instance_id)}')">
+                                <i class="fas fa-list-alt"></i> Логи
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>«</button>`;
+
+            for (let i = 1; i <= Math.min(totalPages, 7); i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            if (totalPages > 7) {
+                html += '<span style="padding: 8px;">...</span>';
+                html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>»</button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        function viewLogs(processId) {
+            if (processId && processId !== '—') {
+                window.location.href = `/logs/${encodeURIComponent(processId)}`;
+            } else {
+                alert('ID процесса не найден');
+            }
+        }
+
+        // Функция показа деталей в модальном окне (переменные + результат в виде формы)
+        function showDetails(instanceId) {
+            if (!instanceId || instanceId === '—') {
+                alert('ID процесса не указан');
+                return;
+            }
+
+            const modal = document.getElementById('detailsModal');
+            const modalDetails = document.getElementById('modalDetails');
+            modalDetails.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Загрузка данных...</div>';
+            modal.style.display = 'block';
+
+            fetch(`/api/logs/${instanceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        modalDetails.innerHTML = `<div style="color:red; padding:20px;">
+                            <i class="fas fa-exclamation-triangle"></i> Ошибка загрузки деталей: ${data.error || 'Неизвестная ошибка'}
+                        </div>`;
+                        return;
+                    }
+
+                    const processInfo = data.process_info || {};
+                    const variables = processInfo.variables || {};
+                    const result = data.result || {};
+                    const procName = processInfo.proc_name || 'Неизвестный процесс';
+                    const status = processInfo.status || 'UNKNOWN';
+                    const started = processInfo.started_at_formatted || '—';
+                    const completed = processInfo.completed_at_formatted || '—';
+                    const duration = processInfo.duration_seconds ? `${processInfo.duration_seconds} сек` : '—';
+                    const errorMsg = processInfo.error_message || null;
+
+                    const statusClass = status === 'COMPLETED' ? 'success' : 'error';
+
+                    // Формируем HTML с отображением переменных и результата в виде удобной таблицы/формы
+                    let html = `
+                        <div class="details-section">
+                            <h3><i class="fas fa-chart-line"></i> Общая информация</h3>
+                            <div class="formatted-data">
+                                <table>
+                                    <tr><td>Название процесса:</td><td><strong>${escapeHtml(procName)}</strong></td></tr>
+                                    <tr><td>Статус:</td><td><span class="status-badge status-${statusClass}">${escapeHtml(status)}</span></td></tr>
+                                    <tr><td>Начало:</td><td>${escapeHtml(started)}</td></tr>
+                                    <tr><td>Завершение:</td><td>${escapeHtml(completed)}</td></tr>
+                                    <tr><td>Длительность:</td><td>${escapeHtml(duration)}</td></tr>
+                    `;
+                    if (errorMsg) {
+                        html += `<tr><td>Ошибка:</td><td style="color:#e53e3e;">${escapeHtml(errorMsg)}</td></tr>`;
+                    }
+                    html += `</table></div></div>`;
+
+                    // Переменные процесса (входные данные)
+                    html += `<div class="details-section">
+                                <h3><i class="fas fa-database"></i> Входные переменные</h3>
+                                <div class="formatted-data">
+                    `;
+                    if (Object.keys(variables).length === 0) {
+                        html += `<p><i class="fas fa-info-circle"></i> Нет переменных</p>`;
+                    } else {
+                        html += `<table>`;
+                        for (const [key, value] of Object.entries(variables)) {
+                            let displayValue;
+                            if (typeof value === 'object') {
+                                displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+                            } else {
+                                displayValue = escapeHtml(String(value));
+                            }
+                            html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
+                        }
+                        html += `</table>`;
+                    }
+                    html += `</div></div>`;
+
+                    // Результат выполнения (выходные данные)
+                    html += `<div class="details-section">
+                                <h3><i class="fas fa-chart-bar"></i> Результат выполнения</h3>
+                                <div class="formatted-data">
+                    `;
+                    if (Object.keys(result).length === 0) {
+                        html += `<p><i class="fas fa-info-circle"></i> Нет данных результата</p>`;
+                    } else {
+                        html += `<table>`;
+                        for (const [key, value] of Object.entries(result)) {
+                            let displayValue;
+                            if (typeof value === 'object') {
+                                displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+                            } else {
+                                displayValue = escapeHtml(String(value));
+                            }
+                            html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
+                        }
+                        html += `</table>`;
+                    }
+                    html += `</div></div>`;
+
+                    modalDetails.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки деталей:', error);
+                    modalDetails.innerHTML = `<div style="color:red; padding:20px;">
+                        <i class="fas fa-exclamation-triangle"></i> Ошибка подключения: ${error.message}
+                    </div>`;
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна при клике вне его области
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailsModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        function clearHistory() {
+            if (confirm('⚠️ Вы уверены, что хотите очистить всю историю? Это действие нельзя отменить.')) {
+                fetch('/api/history', { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(() => {
+                        loadHistory();
+                    })
+                    .catch(error => {
+                        console.error('Ошибка очистки истории:', error);
+                        alert('Ошибка при очистке истории');
+                    });
+            }
+        }
+
+        function refreshData() {
+            loadHistory();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>

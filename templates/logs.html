@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Логи выполнения процесса - Runa WFE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,13 +15,23 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
             min-height: 100vh;
-            padding: 20px;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .user-info {
+            color: white;
+            margin-right: 15px;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         .header {
@@ -36,6 +48,7 @@
         .header h1 {
             color: #333;
             font-size: 24px;
+            margin: 0;
         }
 
         .back-btn {
@@ -45,11 +58,15 @@
             padding: 10px 20px;
             border-radius: 5px;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .back-btn:hover {
             background: #5a67d8;
             transform: translateY(-2px);
+            color: white;
         }
 
         /* Две колонки: BPMN схема и логи */
@@ -90,11 +107,13 @@
         .bpmn-header h2 {
             color: #333;
             font-size: 18px;
+            margin: 0;
         }
 
         .bpmn-controls {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .bpmn-control-btn {
@@ -200,7 +219,7 @@
 
         .process-info h3 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .process-info code {
@@ -346,6 +365,16 @@
             color: white;
         }
 
+        .level-WARNING {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .level-SUCCESS {
+            background: #10b981;
+            color: white;
+        }
+
         .log-step {
             color: #10b981;
             font-weight: bold;
@@ -381,350 +410,452 @@
             .log-controls {
                 flex-direction: column;
             }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>📋 Детали выполнения процесса</h1>
-        <a href="/history" class="back-btn">← Назад к истории</a>
-    </div>
-
-    <!-- Две колонки: BPMN схема и информация -->
-    <div class="two-columns">
-        <!-- Левая колонка: BPMN схема -->
-        <div class="bpmn-container">
-            <div class="bpmn-header">
-                <h2>📐 BPMN схема процесса</h2>
-                <div class="bpmn-controls">
-                    <button class="bpmn-control-btn" onclick="zoomIn()">🔍 +</button>
-                    <button class="bpmn-control-btn" onclick="zoomOut()">🔍 -</button>
-                    <button class="bpmn-control-btn" onclick="resetZoom()">⟳ Сброс</button>
-                    <button class="bpmn-control-btn" onclick="openModal()">🖼️ Полный экран</button>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-tasks"></i> Управление процессами
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="user-info">
+                    <i class="fas fa-user"></i> {{ user.username }}
                 </div>
+                <a href="/logout" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </a>
             </div>
-            <div class="bpmn-image-container">
-                {% if bpmn_image %}
-                    <img id="bpmnImage"
-                         src="{{ url_for('static', filename='bpmn_diagrams/' + bpmn_image) }}"
-                         alt="BPMN схема процесса"
-                         style="max-width: 100%; height: auto; cursor: pointer;"
-                         onclick="openModal()">
-                {% else %}
-                    <div class="bpmn-placeholder">
-                        <p>📭 BPMN схема не найдена</p>
-                        <p style="font-size: 12px; margin-top: 10px;">
-                            Поместите файл схемы в папку <code>static/bpmn_diagrams/</code>
-                        </p>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-list-alt"></i> Детали выполнения процесса</h1>
+            <a href="/history" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Назад к истории
+            </a>
+        </div>
+
+        <!-- Две колонки: BPMN схема и информация -->
+        <div class="two-columns">
+            <!-- Левая колонка: BPMN схема -->
+            <div class="bpmn-container">
+                <div class="bpmn-header">
+                    <h2><i class="fas fa-project-diagram"></i> BPMN схема процесса</h2>
+                    <div class="bpmn-controls">
+                        <button class="bpmn-control-btn" onclick="zoomIn()">
+                            <i class="fas fa-search-plus"></i> +
+                        </button>
+                        <button class="bpmn-control-btn" onclick="zoomOut()">
+                            <i class="fas fa-search-minus"></i> -
+                        </button>
+                        <button class="bpmn-control-btn" onclick="resetZoom()">
+                            <i class="fas fa-sync-alt"></i> Сброс
+                        </button>
+                        <button class="bpmn-control-btn" onclick="openModal()">
+                            <i class="fas fa-expand"></i> Полный экран
+                        </button>
                     </div>
-                {% endif %}
-            </div>
-            <div class="bpmn-info">
-                <strong>ℹ️ Информация:</strong><br>
-                • Кликните по схеме для увеличения<br>
-                • Используйте кнопки масштабирования для детального просмотра<br>
-                • Схема отображает логику бизнес-процесса
-            </div>
-        </div>
-
-        <!-- Правая колонка: информация и логи -->
-        <div>
-            <div class="process-info">
-                <h3>🔄 Информация о процессе</h3>
-                <div>ID процесса: <code id="processId">{{ process_id }}</code></div>
-                <div id="processDetails"></div>
-            </div>
-
-            <div class="log-controls">
-                <button class="log-btn log-btn-primary" onclick="refreshLogs()">🔄 Обновить логи</button>
-                <button class="log-btn log-btn-secondary" onclick="copyLogs()">📋 Копировать логи</button>
-                <button class="log-btn log-btn-secondary" onclick="downloadLogs()">💾 Скачать логи</button>
-                <button class="log-btn log-btn-secondary" id="autoRefreshBtn" onclick="toggleAutoRefresh()">⏸ Автообновление выкл</button>
-                <select id="levelFilter" class="filter-select" onchange="filterLogs()">
-                    <option value="all">Все уровни</option>
-                    <option value="INFO">INFO</option>
-                    <option value="ERROR">ERROR</option>
-                    <option value="WARNING">WARNING</option>
-                </select>
-                <select id="typeFilter" class="filter-select" onchange="filterLogs()">
-                    <option value="all">Все типы</option>
-                    <option value="script">Скрипты</option>
-                    <option value="user_task">Пользовательские задачи</option>
-                    <option value="decision">Решения</option>
-                    <option value="system">Системные</option>
-                </select>
+                </div>
+                <div class="bpmn-image-container">
+                    {% if bpmn_image %}
+                        <img id="bpmnImage"
+                             class="bpmn-image"
+                             src="{{ url_for('static', filename='bpmn_diagrams/' + bpmn_image) }}"
+                             alt="BPMN схема процесса"
+                             onclick="openModal()">
+                    {% else %}
+                        <div class="bpmn-placeholder">
+                            <i class="fas fa-image" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <p>📭 BPMN схема не найдена</p>
+                            <p style="font-size: 12px; margin-top: 10px;">
+                                Поместите файл схемы в папку <code>static/bpmn_diagrams/</code>
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="bpmn-info">
+                    <i class="fas fa-info-circle"></i> <strong>Информация:</strong><br>
+                    • Кликните по схеме для увеличения<br>
+                    • Используйте кнопки масштабирования для детального просмотра<br>
+                    • Схема отображает логику бизнес-процесса
+                </div>
             </div>
 
-            <div class="logs-container" id="logsContainer">
-                <div id="logsContent">
-                    <div class="empty-logs">Загрузка логов...</div>
+            <!-- Правая колонка: информация и логи -->
+            <div>
+                <div class="process-info">
+                    <h3><i class="fas fa-chart-line"></i> Информация о процессе</h3>
+                    <div>ID процесса: <code id="processId">{{ process_id }}</code></div>
+                    <div id="processDetails"></div>
+                </div>
+
+                <div class="log-controls">
+                    <button class="log-btn log-btn-primary" onclick="refreshLogs()">
+                        <i class="fas fa-sync-alt"></i> Обновить логи
+                    </button>
+                    <button class="log-btn log-btn-secondary" onclick="copyLogs()">
+                        <i class="fas fa-copy"></i> Копировать логи
+                    </button>
+                    <button class="log-btn log-btn-secondary" onclick="downloadLogs()">
+                        <i class="fas fa-download"></i> Скачать логи
+                    </button>
+                    <button class="log-btn log-btn-secondary" id="autoRefreshBtn" onclick="toggleAutoRefresh()">
+                        <i class="fas fa-pause"></i> Автообновление выкл
+                    </button>
+                    <select id="levelFilter" class="filter-select" onchange="filterLogs()">
+                        <option value="all">Все уровни</option>
+                        <option value="INFO">INFO</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARNING">WARNING</option>
+                        <option value="SUCCESS">SUCCESS</option>
+                    </select>
+                    <select id="typeFilter" class="filter-select" onchange="filterLogs()">
+                        <option value="all">Все типы</option>
+                        <option value="script">⚙️ Скрипты</option>
+                        <option value="user_task">👤 Пользовательские задачи</option>
+                        <option value="decision">🤔 Решения</option>
+                        <option value="system">🔧 Системные</option>
+                    </select>
+                </div>
+
+                <div class="logs-container" id="logsContainer">
+                    <div id="logsContent">
+                        <div class="empty-logs">
+                            <i class="fas fa-spinner fa-spin"></i> Загрузка логов...
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Модальное окно для полноэкранного просмотра -->
-<div id="modal" class="modal" onclick="closeModal()">
-    <span class="close-modal">&times;</span>
-    <img class="modal-content" id="modalImage">
-</div>
+    <!-- Модальное окно для полноэкранного просмотра -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
 
-<script>
-    const NEXT_PROCESS_MAP = {
-    'process_1': 'process_2',
-    'process_2': 'process_3',
-    'process_3': null
-    };
-
-    const processId = '{{ process_id }}';
-    let allLogs = [];
-    let autoRefreshInterval = null;
-    let autoRefreshEnabled = false;
-    let currentZoom = 1;
-
-    window.onload = function() {
-        loadLogs();
-        document.getElementById('processId').textContent = processId;
-    };
-
-    function loadLogs() {
-        fetch(`/api/logs/${processId}`)
-            .then(response => response.json())
-            .then(data => {
-                allLogs = data.logs || [];
-                updateProcessInfo();
-                filterLogs();
-
-                // Обновляем информацию о BPMN схеме
-                if (data.bpmn && data.bpmn.image_url) {
-                    const imgElement = document.getElementById('bpmnImage');
-                    if (imgElement) {
-                        imgElement.src = data.bpmn.image_url;
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки логов:', error);
-                document.getElementById('logsContent').innerHTML = '<div class="empty-logs">❌ Ошибка загрузки логов</div>';
-            });
-    }
-
-    function updateProcessInfo() {
-        const stats = {
-            total: allLogs.length,
-            error: allLogs.filter(l => l.level === 'ERROR').length,
-            scripts: allLogs.filter(l => l.type === 'script').length,
-            decisions: allLogs.filter(l => l.type === 'decision').length,
-            user_tasks: allLogs.filter(l => l.type === 'user_task').length
+    <script>
+        const NEXT_PROCESS_MAP = {
+            'process_1': 'process_2',
+            'process_2': 'process_3',
+            'process_3': null
         };
 
-        document.getElementById('processDetails').innerHTML = `
-            <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                <div>📊 Всего записей: ${stats.total}</div>
-                <div style="color: #ef4444;">❌ Ошибок: ${stats.error}</div>
-                <div style="color: #10b981;">⚙️ Скриптов: ${stats.scripts}</div>
-                <div style="color: #8b5cf6;">🤔 Решений: ${stats.decisions}</div>
-                <div style="color: #ec489a;">👥 Пользовательских задач: ${stats.user_tasks}</div>
-            </div>
-        `;
-    }
+        const processId = '{{ process_id }}';
+        let allLogs = [];
+        let autoRefreshInterval = null;
+        let autoRefreshEnabled = false;
+        let currentZoom = 1;
+        let currentProcessResult = null;
 
-    function filterLogs() {
-        const levelFilter = document.getElementById('levelFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
+        window.onload = function() {
+            loadLogs();
+            document.getElementById('processId').textContent = processId;
+        };
 
-        let filteredLogs = allLogs;
+        function loadLogs() {
+            fetch(`/api/logs/${processId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allLogs = data.logs || [];
+                        currentProcessResult = data.result;
+                        updateProcessInfo(data.process_info);
+                        filterLogs();
 
-        if (levelFilter !== 'all') {
-            filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+                        // Обновляем информацию о BPMN схеме
+                        if (data.bpmn && data.bpmn.image_url) {
+                            const imgElement = document.getElementById('bpmnImage');
+                            if (imgElement && imgElement.src !== data.bpmn.image_url) {
+                                imgElement.src = data.bpmn.image_url;
+                            }
+                        }
+
+                        // Добавляем кнопку для следующего процесса
+                        if (data.process_info && data.process_info.status === 'COMPLETED') {
+                            addNextProcessButton(data.process_info.proc_id);
+                        }
+                    } else {
+                        document.getElementById('logsContent').innerHTML = `<div class="empty-logs">
+                            <i class="fas fa-exclamation-triangle"></i> Ошибка: ${data.error}
+                        </div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки логов:', error);
+                    document.getElementById('logsContent').innerHTML = '<div class="empty-logs"><i class="fas fa-exclamation-triangle"></i> Ошибка загрузки логов</div>';
+                });
         }
 
-        if (typeFilter !== 'all') {
-            filteredLogs = filteredLogs.filter(log => log.type === typeFilter);
-        }
+        function updateProcessInfo(processInfo) {
+            if (!processInfo) return;
 
-        renderLogs(filteredLogs);
-    }
+            const stats = {
+                total: allLogs.length,
+                error: allLogs.filter(l => l.level === 'ERROR').length,
+                warning: allLogs.filter(l => l.level === 'WARNING').length,
+                success: allLogs.filter(l => l.level === 'SUCCESS').length,
+                scripts: allLogs.filter(l => l.type === 'script').length,
+                decisions: allLogs.filter(l => l.type === 'decision').length,
+                user_tasks: allLogs.filter(l => l.type === 'user_task').length
+            };
 
-    function renderLogs(logs) {
-        const logsContent = document.getElementById('logsContent');
+            const statusBadge = processInfo.status === 'COMPLETED' ?
+                '<span class="badge bg-success">Успешно завершен</span>' :
+                (processInfo.status === 'ERROR' ?
+                '<span class="badge bg-danger">Ошибка</span>' :
+                '<span class="badge bg-warning">В процессе</span>');
 
-        if (logs.length === 0) {
-            logsContent.innerHTML = '<div class="empty-logs">📭 Нет записей логов</div>';
-            return;
-        }
-
-        logsContent.innerHTML = logs.map(log => {
-            const date = new Date(log.timestamp);
-            const formattedTime = date.toLocaleString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-
-            const levelClass = `level-${log.level}`;
-            const typeClass = `log-${log.type || 'system'}`;
-
-            return `
-                <div class="log-entry ${typeClass}">
-                    <div>
-                        <span class="log-timestamp">[${formattedTime}]</span>
-                        <span class="log-level ${levelClass}">${log.level || 'INFO'}</span>
-                        ${log.step ? `<span class="log-step">📍 ${log.step}</span>` : ''}
+            document.getElementById('processDetails').innerHTML = `
+                <div style="margin-top: 10px;">
+                    <div class="mb-2"><strong>Статус:</strong> ${statusBadge}</div>
+                    <div class="mb-2"><strong>Начало:</strong> ${processInfo.started_at_formatted || '—'}</div>
+                    <div class="mb-2"><strong>Завершение:</strong> ${processInfo.completed_at_formatted || '—'}</div>
+                    <div class="mb-2"><strong>Длительность:</strong> ${processInfo.duration_seconds ? processInfo.duration_seconds.toFixed(2) + ' сек' : '—'}</div>
+                    <div class="mb-2"><strong>Автор:</strong> ${processInfo.created_by || '—'}</div>
+                    ${processInfo.error_message ? `<div class="alert alert-danger mt-2">❌ ${escapeHtml(processInfo.error_message)}</div>` : ''}
+                    <hr>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div><i class="fas fa-chart-line"></i> Всего: ${stats.total}</div>
+                        <div style="color: #ef4444;"><i class="fas fa-times-circle"></i> Ошибок: ${stats.error}</div>
+                        <div style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Warning: ${stats.warning}</div>
+                        <div style="color: #10b981;"><i class="fas fa-check-circle"></i> Success: ${stats.success}</div>
+                        <div style="color: #10b981;"><i class="fas fa-code"></i> Скриптов: ${stats.scripts}</div>
+                        <div style="color: #8b5cf6;"><i class="fas fa-brain"></i> Решений: ${stats.decisions}</div>
+                        <div style="color: #ec489a;"><i class="fas fa-users"></i> Задач: ${stats.user_tasks}</div>
                     </div>
-                    <div class="log-message" style="margin-top: 5px;">
-                        ${escapeHtml(log.message)}
-                    </div>
-                    ${log.result ? `<div style="margin-top: 5px; color: #10b981; font-size: 11px;">Результат: ${escapeHtml(JSON.stringify(log.result))}</div>` : ''}
                 </div>
             `;
-        }).join('');
+        }
 
-        // Автопрокрутка вниз
-        const logsContainer = document.getElementById('logsContainer');
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-    }
+        function filterLogs() {
+            const levelFilter = document.getElementById('levelFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+            let filteredLogs = allLogs;
 
-    function refreshLogs() {
-        loadLogs();
-    }
+            if (levelFilter !== 'all') {
+                filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+            }
 
-    function copyLogs() {
-        const logText = allLogs.map(log => {
-            return `[${log.timestamp}] ${log.level} - ${log.step || ''}: ${log.message}`;
-        }).join('\n');
+            if (typeFilter !== 'all') {
+                filteredLogs = filteredLogs.filter(log => log.type === typeFilter);
+            }
 
-        navigator.clipboard.writeText(logText).then(() => {
-            alert('Логи скопированы в буфер обмена');
-        }).catch(() => {
-            alert('Ошибка копирования логов');
-        });
-    }
+            renderLogs(filteredLogs);
+        }
 
-    function downloadLogs() {
-        const logText = allLogs.map(log => {
-            return `[${log.timestamp}] ${log.level} - ${log.step || ''}: ${log.message}`;
-        }).join('\n');
+        function renderLogs(logs) {
+            const logsContent = document.getElementById('logsContent');
 
-        const blob = new Blob([logText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `process_${processId}_logs.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+            if (logs.length === 0) {
+                logsContent.innerHTML = '<div class="empty-logs"><i class="fas fa-inbox"></i> Нет записей логов</div>';
+                return;
+            }
 
-    function toggleAutoRefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        const btn = document.getElementById('autoRefreshBtn');
+            logsContent.innerHTML = logs.map(log => {
+                const timestamp = log.timestamp_formatted || '';
+                const levelClass = `level-${log.level}`;
+                const typeClass = `log-${log.type || 'system'}`;
+                const icon = log.icon || getIconForType(log.type);
 
-        if (autoRefreshEnabled) {
-            autoRefreshInterval = setInterval(() => {
-                refreshLogs();
-            }, 3000);
-            btn.textContent = '▶ Автообновление вкл';
-            btn.classList.add('auto-refresh');
-        } else {
+                return `
+                    <div class="log-entry ${typeClass}">
+                        <div>
+                            ${timestamp ? `<span class="log-timestamp">[${timestamp}]</span>` : ''}
+                            <span class="log-level ${levelClass}">${log.level || 'INFO'}</span>
+                            ${log.step ? `<span class="log-step">${icon} ${log.step}</span>` : ''}
+                        </div>
+                        <div class="log-message" style="margin-top: 5px;">
+                            ${escapeHtml(log.message)}
+                        </div>
+                        ${log.data ? `<div style="margin-top: 5px; color: #10b981; font-size: 11px;">
+                            <i class="fas fa-database"></i> Данные: ${escapeHtml(JSON.stringify(log.data))}
+                        </div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Автопрокрутка вниз
+            const logsContainer = document.getElementById('logsContainer');
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        function getIconForType(type) {
+            const icons = {
+                'script': '⚙️',
+                'user_task': '👤',
+                'decision': '🤔',
+                'system': '🔧',
+                'init': '🚀',
+                'complete': '✅',
+                'error': '❌'
+            };
+            return icons[type] || '📌';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function refreshLogs() {
+            loadLogs();
+        }
+
+        function copyLogs() {
+            const logText = allLogs.map(log => {
+                return `[${log.timestamp_formatted || ''}] ${log.level} - ${log.step || ''}: ${log.message}`;
+            }).join('\n');
+
+            navigator.clipboard.writeText(logText).then(() => {
+                showNotification('Логи скопированы в буфер обмена', 'success');
+            }).catch(() => {
+                showNotification('Ошибка копирования логов', 'error');
+            });
+        }
+
+        function downloadLogs() {
+            const logText = allLogs.map(log => {
+                return `[${log.timestamp_formatted || ''}] ${log.level} - ${log.step || ''}: ${log.message}`;
+            }).join('\n');
+
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `process_${processId}_logs.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Логи сохранены', 'success');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
+            notification.style.zIndex = '9999';
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const btn = document.getElementById('autoRefreshBtn');
+
+            if (autoRefreshEnabled) {
+                autoRefreshInterval = setInterval(() => {
+                    refreshLogs();
+                }, 3000);
+                btn.innerHTML = '<i class="fas fa-play"></i> Автообновление вкл';
+                btn.classList.add('auto-refresh');
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                }
+                btn.innerHTML = '<i class="fas fa-pause"></i> Автообновление выкл';
+                btn.classList.remove('auto-refresh');
+            }
+        }
+
+        // Функции для масштабирования BPMN схемы
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.1, 3);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.1, 0.5);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const img = document.getElementById('bpmnImage');
+            if (img) {
+                img.style.transform = `scale(${currentZoom})`;
+                img.style.transition = 'transform 0.3s';
+            }
+        }
+
+        // Модальное окно
+        function openModal() {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modalImage');
+            const img = document.getElementById('bpmnImage');
+
+            if (img && img.src) {
+                modal.style.display = 'block';
+                modalImg.src = img.src;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function addNextProcessButton(procId) {
+            const next = NEXT_PROCESS_MAP[procId];
+            if (!next) return;
+
+            // Проверяем, не добавлена ли уже кнопка
+            if (document.getElementById('nextProcessBtn')) return;
+
+            const btn = document.createElement('button');
+            btn.id = 'nextProcessBtn';
+            btn.className = 'log-btn log-btn-secondary';
+            btn.innerHTML = `<i class="fas fa-forward"></i> Запустить ${next.replace('_', ' ')}`;
+            btn.onclick = () => launchNextProcess(next, procId);
+            document.querySelector('.log-controls').appendChild(btn);
+        }
+
+        async function launchNextProcess(nextProcId, currentProcId) {
+            // Получаем переменные из результата текущего процесса
+            let variables = {};
+
+            if (currentProcId === 'process_1' && currentProcessResult) {
+                variables = {
+                    document_id: currentProcessResult.document_id || 'AUTO_GEN',
+                    equipment_type: currentProcessResult.equipment_type || 'auto',
+                    created_by: currentProcessResult.author || 'system'
+                };
+            } else if (currentProcId === 'process_2' && currentProcessResult) {
+                variables = {
+                    production_period: currentProcessResult.production_period || '2025-01',
+                    created_by: currentProcessResult.abc_analysis?.analyzed_by || 'system',
+                    equipment_id: currentProcessResult.equipment_id || ''
+                };
+            }
+
+            // Перенаправляем на главную страницу с предзаполнением
+            const params = new URLSearchParams();
+            params.set('proc', nextProcId);
+            params.set('prefill', JSON.stringify(variables));
+            window.location.href = `/?${params.toString()}`;
+        }
+
+        // Очистка интервала при уходе со страницы
+        window.onbeforeunload = function() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
             }
-            btn.textContent = '⏸ Автообновление выкл';
-            btn.classList.remove('auto-refresh');
-        }
-    }
-
-    // Функции для масштабирования BPMN схемы
-    function zoomIn() {
-        currentZoom = Math.min(currentZoom + 0.1, 3);
-        applyZoom();
-    }
-
-    function zoomOut() {
-        currentZoom = Math.max(currentZoom - 0.1, 0.5);
-        applyZoom();
-    }
-
-    function resetZoom() {
-        currentZoom = 1;
-        applyZoom();
-    }
-
-    function applyZoom() {
-        const img = document.getElementById('bpmnImage');
-        if (img) {
-            img.style.transform = `scale(${currentZoom})`;
-        }
-    }
-
-    // Модальное окно
-    function openModal() {
-        const modal = document.getElementById('modal');
-        const modalImg = document.getElementById('modalImage');
-        const img = document.getElementById('bpmnImage');
-
-        if (img) {
-            modal.style.display = 'block';
-            modalImg.src = img.src;
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
-
-    function addNextProcessButton(procId) {
-        const next = NEXT_PROCESS_MAP[procId];
-        if (!next) return;
-        const btn = document.createElement('button');
-        btn.className = 'log-btn log-btn-secondary';
-        btn.innerHTML = `⏩ Запустить ${next.replace('_', ' ')}`;
-        btn.onclick = () => launchNextProcess(next, procId);
-        document.querySelector('.log-controls').appendChild(btn);
-    }
-
-    async function launchNextProcess(nextProcId, currentProcId) {
-        // Получить результат текущего процесса из уже загруженных данных
-        const currentResult = window.currentProcessResult; // сохраняем при загрузке
-        // Преобразовать результат в переменные для следующего процесса
-        let variables = {};
-        if (currentProcId === 'process_1') {
-            // Пример: из result взять нужные поля
-            variables = {
-                document_id: currentResult?.document_id || 'AUTO_GEN',
-                equipment_type: 'auto', // можно запросить у пользователя
-                // ... остальное – через форму
-            };
-        } else if (currentProcId === 'process_2') {
-            variables = {
-                production_period: '2025-01',
-                created_by: currentResult?.abc_analysis?.analyzed_by || 'system'
-            };
-        }
-        // Перенаправляем на главную страницу с предзаполнением через URL параметры
-        const params = new URLSearchParams();
-        params.set('proc', nextProcId);
-        params.set('prefill', JSON.stringify(variables));
-        window.location.href = `/?${params.toString()}`;
-    }
-
-    // Очистка интервала при уходе со страницы
-    window.onbeforeunload = function() {
-        if (autoRefreshInterval) {
-            clearInterval(autoRefreshInterval);
-        }
-    };
-</script>
+        };
+    </script>
 </body>
 </html>
