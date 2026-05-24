@@ -8,7 +8,7 @@ from process_3 import create_process_instance as create_process_3, execute_proce
     get_process_status as get_process_status_3
 
 
-class RunaProcessLauncher:
+class ProcessLauncher:
     """
     Класс для запуска процессов Runa WFE.
     Поддерживает process_1, process_2, process_3 и удаленные процессы через REST API

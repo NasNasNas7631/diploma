@@ -472,6 +472,12 @@
 </div>
 
 <script>
+    const NEXT_PROCESS_MAP = {
+    'process_1': 'process_2',
+    'process_2': 'process_3',
+    'process_3': null
+    };
+
     const processId = '{{ process_id }}';
     let allLogs = [];
     let autoRefreshInterval = null;
@@ -676,6 +682,41 @@
 
     function closeModal() {
         document.getElementById('modal').style.display = 'none';
+    }
+
+    function addNextProcessButton(procId) {
+        const next = NEXT_PROCESS_MAP[procId];
+        if (!next) return;
+        const btn = document.createElement('button');
+        btn.className = 'log-btn log-btn-secondary';
+        btn.innerHTML = `⏩ Запустить ${next.replace('_', ' ')}`;
+        btn.onclick = () => launchNextProcess(next, procId);
+        document.querySelector('.log-controls').appendChild(btn);
+    }
+
+    async function launchNextProcess(nextProcId, currentProcId) {
+        // Получить результат текущего процесса из уже загруженных данных
+        const currentResult = window.currentProcessResult; // сохраняем при загрузке
+        // Преобразовать результат в переменные для следующего процесса
+        let variables = {};
+        if (currentProcId === 'process_1') {
+            // Пример: из result взять нужные поля
+            variables = {
+                document_id: currentResult?.document_id || 'AUTO_GEN',
+                equipment_type: 'auto', // можно запросить у пользователя
+                // ... остальное – через форму
+            };
+        } else if (currentProcId === 'process_2') {
+            variables = {
+                production_period: '2025-01',
+                created_by: currentResult?.abc_analysis?.analyzed_by || 'system'
+            };
+        }
+        // Перенаправляем на главную страницу с предзаполнением через URL параметры
+        const params = new URLSearchParams();
+        params.set('proc', nextProcId);
+        params.set('prefill', JSON.stringify(variables));
+        window.location.href = `/?${params.toString()}`;
     }
 
     // Очистка интервала при уходе со страницы

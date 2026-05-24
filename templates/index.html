@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Запуск процессов Runa WFE</title>
+    <title>Запуск процессов</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -87,86 +87,198 @@
 </head>
 <body>
 <div class="container">
-    <a href="/history" class="btn btn-info" style="background: #48bb78;">📊 История</a>
-    <h1>Запуск процесса Runa WFE</h1>
-    <form id="processForm">
-        <label for="definitionId">ID определения процесса (обязательно):</label>
-        <input type="text" id="definitionId" name="definitionId" required placeholder="например, 123">
+    <a href="/history" class="btn btn-info">📊 История</a>
+    <h1>Запуск процесса</h1>
 
-        <label for="variables">Переменные процесса (JSON):</label>
-        <textarea id="variables" name="variables" placeholder='{"ключ": "значение", "число": 42}'></textarea>
+    <label for="processSelect">Выберите процесс:</label>
+    <select id="processSelect" required>
+        <option value="">-- выберите --</option>
+    </select>
 
-        <button type="submit">♦ Запустить процесс ♦</button>
-    </form>
-
+    <div id="dynamicForm"></div>
+    <button id="submitBtn" style="display:none;">♦ Запустить процесс ♦</button>
     <div id="messageBox" class="message"></div>
-
-    <div class="example">
-        <strong>Пример JSON переменных:</strong>
-        <pre>{
-  "comment": "Запуск из веб-интерфейса",
-  "priority": 1,
-  "userId": "ivanov"
-}</pre>
-    </div>
 </div>
 
 <script>
-    const form = document.getElementById('processForm');
-    const messageBox = document.getElementById('messageBox');
+    let currentSchema = null;
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
+    // Загрузка списка процессов из /api/processes
+    fetch('/api/processes')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const select = document.getElementById('processSelect');
+                data.processes.forEach(proc => {
+                    const option = document.createElement('option');
+                    const procId = proc.id || proc.proc_id || proc.definition_id;
+                    if (!procId) return;
+                    option.value = procId;
+                    option.textContent = proc.name || proc.proc_name || procId;
+                    select.appendChild(option);
+                });
+            }
+        });
 
-        // Получаем значения
-        const definitionId = document.getElementById('definitionId').value;
-        let variables = {};
-        const variablesText = document.getElementById('variables').value.trim();
+    document.getElementById('processSelect').addEventListener('change', function() {
+        const procId = this.value;
+        if (!procId) return;
+        fetch(`/api/processes/${procId}/form_schema`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    currentSchema = data.schema;
+                    renderForm(data.schema.fields);
+                    document.getElementById('submitBtn').style.display = 'block';
+                } else {
+                    document.getElementById('dynamicForm').innerHTML = '<p class="error">Ошибка загрузки формы</p>';
+                }
+            });
+    });
 
-        if (variablesText) {
-            try {
-                variables = JSON.parse(variablesText);
-            } catch (e) {
-                showMessage('Ошибка: Неверный формат JSON в переменных', 'error');
-                return;
+    function renderForm(fields) {
+        const container = document.getElementById('dynamicForm');
+        container.innerHTML = '';
+        fields.forEach(field => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-field';
+            wrapper.style.marginBottom = '15px';
+
+            const label = document.createElement('label');
+            label.textContent = field.label + (field.required ? ' *' : '');
+            label.htmlFor = field.name;
+            label.style.display = 'block';
+            label.style.fontWeight = 'bold';
+            label.style.marginBottom = '5px';
+
+            let input;
+
+            if (field.type === 'select') {
+                input = document.createElement('select');
+                input.name = field.name;
+                input.id = field.name;
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = '-- выберите --';
+                input.appendChild(emptyOption);
+                field.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    input.appendChild(option);
+                });
+                if (field.default && field.default !== undefined) {
+                    input.value = field.default;
+                }
+            }
+            else if (field.type === 'checkbox') {
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = field.name;
+                input.id = field.name;
+                if (field.default === true) input.checked = true;
+                // checkbox не требует step и placeholder
+            }
+            else if (field.type === 'json') {
+                input = document.createElement('textarea');
+                input.name = field.name;
+                input.id = field.name;
+                input.rows = 6;
+                input.style.fontFamily = 'monospace';
+                if (field.placeholder) input.placeholder = field.placeholder;
+                if (field.default && typeof field.default === 'object') {
+                    input.value = JSON.stringify(field.default, null, 2);
+                }
+            }
+            else {
+                input = document.createElement('input');
+                input.type = field.type || 'text';
+                input.name = field.name;
+                input.id = field.name;
+                if (field.placeholder) input.placeholder = field.placeholder;
+                if (field.step) input.step = field.step;
+                if (field.default !== undefined && field.default !== null) input.value = field.default;
+            }
+
+            input.required = field.required;
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            container.appendChild(wrapper);
+        });
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        const procId = document.getElementById('processSelect').value;
+        if (!procId) {
+            showMessage('Выберите процесс', 'error');
+            return;
+        }
+        if (!currentSchema) {
+            showMessage('Сначала загрузите форму процесса', 'error');
+            return;
+        }
+
+        const variables = {};
+        for (const field of currentSchema.fields) {
+            const el = document.getElementById(field.name);
+            if (!el) continue;
+
+            let value;
+            if (field.type === 'checkbox') {
+                value = el.checked;
+            }
+            else if (field.type === 'json') {
+                const rawValue = el.value.trim();
+                if (rawValue === '') {
+                    value = null;
+                } else {
+                    try {
+                        value = JSON.parse(rawValue);
+                    } catch (e) {
+                        showMessage(`Ошибка в поле "${field.label}": неверный JSON`, 'error');
+                        return;
+                    }
+                }
+            }
+            else {
+                value = el.value;
+                // Приводим числовые поля к number
+                if (field.type === 'number' && value !== '') {
+                    value = Number(value);
+                }
+            }
+            // Добавляем только непустые значения (по желанию)
+            if (value !== '' && value !== null && value !== undefined) {
+                variables[field.name] = value;
             }
         }
 
-        // Показываем индикатор загрузки
-        showMessage('Запуск процесса... Пожалуйста, подождите', 'loading');
-
-        // Отправляем запрос
-        try {
-            const response = await fetch('/start_process', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    definition_id: definitionId,
-                    variables: variables
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                showMessage(result.message || 'Процесс успешно запущен', 'success');
-                // Дополнительно можно очистить форму или оставить
-            } else {
-                showMessage(`Ошибка: ${result.error || 'Неизвестная ошибка'}`, 'error');
-            }
-        } catch (error) {
-            showMessage(`Сетевая ошибка: ${error.message}`, 'error');
+        const response = await fetch('/start_process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                definition_id: procId,
+                variables: variables,
+                created_by: variables.author || variables.created_by || 'system'
+            })
+        });
+        const result = await response.json();
+        if (response.ok && result.success) {
+            showMessage(result.message || 'Процесс успешно запущен', 'success');
+            // Очистка формы опционально
+            // document.getElementById('dynamicForm').innerHTML = '';
+            // document.getElementById('processSelect').value = '';
+            // document.getElementById('submitBtn').style.display = 'none';
+        } else {
+            showMessage(`Ошибка: ${result.error || result.message || 'Неизвестная ошибка'}`, 'error');
         }
     });
 
     function showMessage(text, type) {
+        const messageBox = document.getElementById('messageBox');
         messageBox.textContent = text;
         messageBox.className = `message ${type}`;
         messageBox.style.display = 'block';
-
-        // Автоматически скрываем success/error через 5 секунд, но loading не скрываем
         if (type !== 'loading') {
             setTimeout(() => {
                 if (messageBox.className.includes(type)) {

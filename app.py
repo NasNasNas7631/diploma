@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
-from runa_client import RunaProcessLauncher
+from process_client import ProcessLauncher
 from database import db
 from datetime import datetime
 import os
 import json
 import traceback
 from dotenv import load_dotenv
-from psycopg2.extras import RealDictCursor  # ВАЖНО: добавить этот импорт
+from psycopg2.extras import RealDictCursor
+from process_forms import get_form_schema
 import psycopg2
 
 # Загрузка переменных окружения
@@ -15,7 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Инициализация клиента
-runa_launcher = RunaProcessLauncher()
+runa_launcher = ProcessLauncher()
 
 # Конфигурация для BPMN диаграмм
 BPMN_DIAGRAMS_PATH = 'static/bpmn_diagrams'
@@ -504,6 +505,14 @@ def check_api():
         'timestamp': datetime.now().isoformat()
     }), 200
 
+@app.route('/api/processes/<proc_id>/form_schema', methods=['GET'])
+def get_process_form_schema(proc_id):
+    """Вернуть схему формы для ввода переменных процесса"""
+    schema = get_form_schema(proc_id)
+    if schema:
+        return jsonify({'success': True, 'schema': schema}), 200
+    else:
+        return jsonify({'success': False, 'error': 'Схема не найдена'}), 404
 
 @app.route('/start_process', methods=['POST'])
 def start_process():

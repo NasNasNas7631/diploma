@@ -179,7 +179,7 @@
             color: #742a2a;
         }
 
-        .view-logs-btn {
+        .view-logs-btn, .view-details-btn {
             background: #4299e1;
             color: white;
             border: none;
@@ -187,10 +187,19 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
+            margin-right: 5px;
         }
 
         .view-logs-btn:hover {
             background: #3182ce;
+        }
+
+        .view-details-btn {
+            background: #805ad5;
+        }
+
+        .view-details-btn:hover {
+            background: #6b46c1;
         }
 
         .pagination {
@@ -228,15 +237,124 @@
             color: #999;
         }
 
+        /* Модальное окно для деталей */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 22px;
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .details-section {
+            margin-bottom: 25px;
+        }
+
+        .details-section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .formatted-data {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .formatted-data table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .formatted-data td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .formatted-data td:first-child {
+            font-weight: bold;
+            width: 30%;
+            vertical-align: top;
+        }
+
+        .formatted-data pre {
+            background: #edf2f7;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 0;
+        }
+
         @media (max-width: 768px) {
             th, td {
                 font-size: 12px;
                 padding: 8px;
             }
-
             .header {
                 flex-direction: column;
                 gap: 15px;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
             }
         }
     </style>
@@ -303,6 +421,19 @@
     <div class="pagination" id="pagination"></div>
 </div>
 
+<!-- Модальное окно для детального просмотра -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📄 Детали выполнения процесса</h2>
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+        </div>
+        <div id="modalDetails">
+            <div style="text-align:center; padding:20px;">Загрузка...</div>
+        </div>
+    </div>
+</div>
+
 <script>
     let allRecords = [];
     let filteredRecords = [];
@@ -315,140 +446,134 @@
     };
 
     function loadHistory() {
-    showLoading();
+        showLoading();
 
-    fetch('/api/history?limit=100')
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
+        fetch('/api/history?limit=100')
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
 
-            if (!data.success) {
-                console.error('Ошибка:', data.error);
-                showError('Ошибка загрузки данных: ' + (data.error || 'Неизвестная ошибка'));
-                return;
-            }
+                if (!data.success) {
+                    console.error('Ошибка:', data.error);
+                    showError('Ошибка загрузки данных: ' + (data.error || 'Неизвестная ошибка'));
+                    return;
+                }
 
-            allRecords = data.records || [];
-            updateStats();
-            filterTable();
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Ошибка загрузки истории:', error);
-            showError('Ошибка подключения к серверу: ' + error.message);
-        });
+                allRecords = data.records || [];
+                updateStats();
+                filterTable();
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Ошибка загрузки истории:', error);
+                showError('Ошибка подключения к серверу: ' + error.message);
+            });
     }
 
     function showError(message) {
-    const tbody = document.getElementById('tableBody');
-    if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">❌ ${message}</td></tr>`;
+        const tbody = document.getElementById('tableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">❌ ${message}</td></tr>`;
+        }
+        console.error(message);
     }
-    console.error(message);
-}
 
     function updateStats() {
-    const total = allRecords.length;
-    const success = allRecords.filter(r => r.status === 'success').length;
-    const error = allRecords.filter(r => r.status === 'error').length;
+        const total = allRecords.length;
+        const success = allRecords.filter(r => r.status === 'success').length;
+        const error = allRecords.filter(r => r.status === 'error').length;
 
-    const totalEl = document.getElementById('totalCount');
-    const successEl = document.getElementById('successCount');
-    const errorEl = document.getElementById('errorCount');
+        const totalEl = document.getElementById('totalCount');
+        const successEl = document.getElementById('successCount');
+        const errorEl = document.getElementById('errorCount');
 
-    if (totalEl) totalEl.textContent = total;
-    if (successEl) successEl.textContent = success;
-    if (errorEl) errorEl.textContent = error;
+        if (totalEl) totalEl.textContent = total;
+        if (successEl) successEl.textContent = success;
+        if (errorEl) errorEl.textContent = error;
     }
 
     function filterTable() {
-    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-    const statusFilter = document.getElementById('statusFilter')?.value || '';
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
 
-    filteredRecords = allRecords.filter(record => {
-        // Фильтр по статусу
-        if (statusFilter && record.status !== statusFilter) return false;
+        filteredRecords = allRecords.filter(record => {
+            if (statusFilter && record.status !== statusFilter) return false;
 
-        // Поиск по тексту
-        if (searchTerm) {
-            const instanceIdMatch = record.instance_id && record.instance_id.toLowerCase().includes(searchTerm);
-            const authorMatch = record.author && record.author.toLowerCase().includes(searchTerm);
-            const equipmentMatch = record.equipment_type && record.equipment_type.toLowerCase().includes(searchTerm);
-            const procNameMatch = record.proc_name && record.proc_name.toLowerCase().includes(searchTerm);
+            if (searchTerm) {
+                const instanceIdMatch = record.instance_id && record.instance_id.toLowerCase().includes(searchTerm);
+                const authorMatch = record.author && record.author.toLowerCase().includes(searchTerm);
+                const equipmentMatch = record.equipment_type && record.equipment_type.toLowerCase().includes(searchTerm);
+                const procNameMatch = record.proc_name && record.proc_name.toLowerCase().includes(searchTerm);
 
-            if (!instanceIdMatch && !authorMatch && !equipmentMatch && !procNameMatch) return false;
-        }
+                if (!instanceIdMatch && !authorMatch && !equipmentMatch && !procNameMatch) return false;
+            }
+            return true;
+        });
 
-        return true;
-    });
-
-    currentPage = 1;
-    renderTable();
-}
+        currentPage = 1;
+        renderTable();
+    }
 
     function showLoading() {
-    const tbody = document.getElementById('tableBody');
-    if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Загрузка данных...</td></tr>';
-    }
+        const tbody = document.getElementById('tableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Загрузка данных...</td></tr>';
+        }
     }
 
     function hideLoading() {
-    // Обработка завершения загрузки
+        // не требуется дополнительных действий
     }
 
     function renderTable() {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageRecords = filteredRecords.slice(startIndex, endIndex);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageRecords = filteredRecords.slice(startIndex, endIndex);
 
-    const tbody = document.getElementById('tableBody');
+        const tbody = document.getElementById('tableBody');
 
-    if (pageRecords.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Нет записей</td></tr>';
-        document.getElementById('pagination').innerHTML = '';
-        return;
-    }
-
-    tbody.innerHTML = pageRecords.map(record => {
-        // Форматируем дату
-        let formattedDate = record.timestamp || '—';
-        if (formattedDate === '—' && record.timestamp_formatted) {
-            formattedDate = record.timestamp_formatted;
+        if (pageRecords.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Нет записей</td></tr>';
+            document.getElementById('pagination').innerHTML = '';
+            return;
         }
 
-        // ID процесса
-        const processIdDisplay = record.instance_id || '—';
+        tbody.innerHTML = pageRecords.map(record => {
+            let formattedDate = record.timestamp || '—';
+            if (formattedDate === '—' && record.timestamp_formatted) {
+                formattedDate = record.timestamp_formatted;
+            }
 
-        // Статус
-        const statusText = record.status_text || (record.status === 'success' ? '✓ Успешно' : '✗ Ошибка');
+            const processIdDisplay = record.instance_id || '—';
+            const statusText = record.status_text || (record.status === 'success' ? '✓ Успешно' : '✗ Ошибка');
+            const resultDisplay = record.result_summary || '—';
 
-        // Результат
-        const resultDisplay = record.result_summary || '—';
+            return `
+                <tr>
+                    <td>${escapeHtml(String(record.id || '—'))}</td>
+                    <td>${escapeHtml(formattedDate)}</td>
+                    <td><code>${escapeHtml(processIdDisplay)}</code></td>
+                    <td>${escapeHtml(record.equipment_type || '—')}</td>
+                    <td>${escapeHtml(record.author || '—')}</td>
+                    <td>
+                        <span class="status-badge status-${record.status || 'unknown'}">
+                            ${escapeHtml(statusText)}
+                        </span>
+                    </td>
+                    <td>${escapeHtml(resultDisplay)}</td>
+                    <td>
+                        <button class="view-details-btn" onclick="showDetails('${escapeHtml(record.instance_id)}')">
+                            📄 Детали
+                        </button>
+                        <button class="view-logs-btn" onclick="viewLogs('${escapeHtml(record.instance_id)}')">
+                            📋 Логи
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
-        return `
-            <tr>
-                <td>${escapeHtml(String(record.id || '—'))}</td>
-                <td>${escapeHtml(formattedDate)}</td>
-                <td><code>${escapeHtml(processIdDisplay)}</code></td>
-                <td>${escapeHtml(record.equipment_type || '—')}</td>
-                <td>${escapeHtml(record.author || '—')}</td>
-                <td>
-                    <span class="status-badge status-${record.status || 'unknown'}">
-                        ${escapeHtml(statusText)}
-                    </span>
-                </td>
-                <td>${escapeHtml(resultDisplay)}</td>
-                <td>
-                    <button class="view-logs-btn" onclick="viewLogs('${escapeHtml(record.instance_id)}')">
-                        📋 Логи
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-
-    renderPagination();
+        renderPagination();
     }
 
     function renderPagination() {
@@ -479,12 +604,123 @@
     }
 
     function viewLogs(processId) {
-    if (processId && processId !== '—') {
-        window.location.href = `/logs/${encodeURIComponent(processId)}`;
-    } else {
-        alert('ID процесса не найден');
+        if (processId && processId !== '—') {
+            window.location.href = `/logs/${encodeURIComponent(processId)}`;
+        } else {
+            alert('ID процесса не найден');
+        }
     }
-}
+
+    // Функция показа деталей в модальном окне (переменные + результат в виде формы)
+    function showDetails(instanceId) {
+        if (!instanceId || instanceId === '—') {
+            alert('ID процесса не указан');
+            return;
+        }
+
+        const modal = document.getElementById('detailsModal');
+        const modalDetails = document.getElementById('modalDetails');
+        modalDetails.innerHTML = '<div style="text-align:center; padding:20px;">Загрузка данных...</div>';
+        modal.style.display = 'block';
+
+        fetch(`/api/logs/${instanceId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    modalDetails.innerHTML = `<div style="color:red; padding:20px;">Ошибка загрузки деталей: ${data.error || 'Неизвестная ошибка'}</div>`;
+                    return;
+                }
+
+                const processInfo = data.process_info || {};
+                const variables = processInfo.variables || {};
+                const result = data.result || {};
+                const procName = processInfo.proc_name || 'Неизвестный процесс';
+                const status = processInfo.status || 'UNKNOWN';
+                const started = processInfo.started_at_formatted || '—';
+                const completed = processInfo.completed_at_formatted || '—';
+                const duration = processInfo.duration_seconds ? `${processInfo.duration_seconds} сек` : '—';
+                const errorMsg = processInfo.error_message || null;
+
+                // Формируем HTML с отображением переменных и результата в виде удобной таблицы/формы
+                let html = `
+                    <div class="details-section">
+                        <h3>🔷 Общая информация</h3>
+                        <div class="formatted-data">
+                            <table>
+                                <tr><td>Название процесса:</td><td><strong>${escapeHtml(procName)}</strong></td></tr>
+                                <tr><td>Статус:</td><td><span class="status-badge status-${status === 'COMPLETED' ? 'success' : 'error'}">${escapeHtml(status)}</span></td></tr>
+                                <tr><td>Начало:</td><td>${escapeHtml(started)}</td></tr>
+                                <tr><td>Завершение:</td><td>${escapeHtml(completed)}</td></tr>
+                                <tr><td>Длительность:</td><td>${escapeHtml(duration)}</td></tr>
+                `;
+                if (errorMsg) {
+                    html += `<tr><td>Ошибка:</td><td style="color:#e53e3e;">${escapeHtml(errorMsg)}</td></tr>`;
+                }
+                html += `</table></div></div>`;
+
+                // Переменные процесса (входные данные)
+                html += `<div class="details-section">
+                            <h3>📥 Входные переменные</h3>
+                            <div class="formatted-data">
+                `;
+                if (Object.keys(variables).length === 0) {
+                    html += `<p>Нет переменных</p>`;
+                } else {
+                    html += `<table>`;
+                    for (const [key, value] of Object.entries(variables)) {
+                        let displayValue;
+                        if (typeof value === 'object') {
+                            displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+                        } else {
+                            displayValue = escapeHtml(String(value));
+                        }
+                        html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
+                    }
+                    html += `</table>`;
+                }
+                html += `</div></div>`;
+
+                // Результат выполнения (выходные данные)
+                html += `<div class="details-section">
+                            <h3>📤 Результат выполнения</h3>
+                            <div class="formatted-data">
+                `;
+                if (Object.keys(result).length === 0) {
+                    html += `<p>Нет данных результата</p>`;
+                } else {
+                    html += `<table>`;
+                    for (const [key, value] of Object.entries(result)) {
+                        let displayValue;
+                        if (typeof value === 'object') {
+                            displayValue = `<pre>${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+                        } else {
+                            displayValue = escapeHtml(String(value));
+                        }
+                        html += `<tr><td>${escapeHtml(key)}</td><td>${displayValue}</td></tr>`;
+                    }
+                    html += `</table>`;
+                }
+                html += `</div></div>`;
+
+                modalDetails.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки деталей:', error);
+                modalDetails.innerHTML = `<div style="color:red; padding:20px;">Ошибка подключения: ${error.message}</div>`;
+            });
+    }
+
+    function closeModal() {
+        document.getElementById('detailsModal').style.display = 'none';
+    }
+
+    // Закрытие модального окна при клике вне его области
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailsModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
 
     function clearHistory() {
         if (confirm('Вы уверены, что хотите очистить всю историю? Это действие нельзя отменить.')) {
@@ -505,10 +741,10 @@
     }
 
     function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 </script>
 </body>

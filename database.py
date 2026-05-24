@@ -20,11 +20,11 @@ class Database:
         self.pool = SimpleConnectionPool(
             minconn=1,
             maxconn=10,
-            host='localhost',
-            port='5432',
-            database='runa_wfe',
-            user='postgres',
-            password='postgre'
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=os.getenv('DB_PORT', '5432'),
+            database=os.getenv('DB_NAME', 'runa_wfe'),
+            user=os.getenv('DB_USER', 'postgres'),
+            password=os.getenv('DB_PASSWORD', 'postgre')
         )
 
     def get_connection(self):
