@@ -193,6 +193,73 @@ def init_users_table():
             db.return_connection(conn)
 
 
+def validate_and_convert_variables(definition_id, variables):
+    """Валидация и преобразование типов переменных"""
+    # Получаем схему процесса
+    schema = get_form_schema(definition_id)
+    if not schema or not schema.get('fields'):
+        return variables, None
+
+    converted_vars = {}
+    errors = []
+
+    for field in schema['fields']:
+        field_name = field['name']
+        field_type = field.get('type', 'string')
+        is_required = field.get('required', False)
+
+        # Получаем значение
+        value = variables.get(field_name)
+
+        # Проверка обязательных полей
+        if is_required and (value is None or value == ''):
+            errors.append(f"Поле '{field.get('label', field_name)}' обязательно для заполнения")
+            continue
+
+        # Если значение не указано и не обязательное - пропускаем
+        if value is None or value == '':
+            converted_vars[field_name] = value
+            continue
+
+        # Преобразование типов
+        try:
+            if field_type == 'number':
+                # Преобразуем в float или int
+                if isinstance(value, (int, float)):
+                    converted_vars[field_name] = float(value)
+                elif isinstance(value, str):
+                    # Заменяем запятую на точку
+                    value = value.replace(',', '.')
+                    converted_vars[field_name] = float(value)
+                else:
+                    converted_vars[field_name] = float(value)
+            elif field_type == 'integer':
+                if isinstance(value, (int, float)):
+                    converted_vars[field_name] = int(value)
+                elif isinstance(value, str):
+                    converted_vars[field_name] = int(float(value.replace(',', '.')))
+                else:
+                    converted_vars[field_name] = int(value)
+            elif field_type == 'boolean':
+                if isinstance(value, bool):
+                    converted_vars[field_name] = value
+                elif isinstance(value, str):
+                    converted_vars[field_name] = value.lower() in ('true', '1', 'yes', 'on')
+                else:
+                    converted_vars[field_name] = bool(value)
+            elif field_type == 'string':
+                converted_vars[field_name] = str(value)
+            else:
+                converted_vars[field_name] = value
+        except (ValueError, TypeError) as e:
+            errors.append(f"Поле '{field.get('label', field_name)}' имеет неверный формат: {e}")
+
+    if errors:
+        return None, errors
+
+    return converted_vars, None
+
+
 # Маршруты авторизации
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -816,9 +883,16 @@ def start_process():
     if not process_def:
         return jsonify({"success": False, "error": f"Процесс {definition_id} не найден"}), 404
 
+    # Валидация и преобразование типов переменных
+    converted_variables, validation_errors = validate_and_convert_variables(definition_id, variables)
+
+    if validation_errors:
+        error_message = "Ошибки валидации:\n" + "\n".join(validation_errors)
+        return jsonify({"success": False, "error": error_message}), 400
+
     try:
-        # Запускаем процесс
-        result = runa_launcher.start_process(definition_id, variables)
+        # Запускаем процесс с преобразованными переменными
+        result = runa_launcher.start_process(definition_id, converted_variables)
         process_id = result.get('process_instance_id')
 
         # Получаем логи и шаги из launcher
@@ -830,7 +904,7 @@ def start_process():
             instance_id=process_id,
             proc_id=definition_id,
             proc_name=process_def['name'],
-            variables=variables,
+            variables=converted_variables,
             steps=steps,
             logs=logs,
             result=result.get('result'),
@@ -850,6 +924,24 @@ def start_process():
     except Exception as e:
         error_msg = str(e)
         traceback.print_exc()
+
+        # Сохраняем ошибку в БД
+        try:
+            db.save_process_history(
+                instance_id=f"error_{datetime.now().timestamp()}",
+                proc_id=definition_id,
+                proc_name=process_def['name'],
+                variables=converted_variables,
+                steps=[],
+                logs=[],
+                result={},
+                status='ERROR',
+                error=error_msg,
+                created_by=created_by
+            )
+        except:
+            pass
+
         return jsonify({"success": False, "error": error_msg}), 500
 
 

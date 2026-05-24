@@ -52,25 +52,6 @@ class ProcessLauncher:
             }
         }
 
-        if self.use_rest_api:
-            self._authenticate()
-
-    def _authenticate(self):
-        """Аутентификация через REST API Runa WFE"""
-        try:
-            import requests
-            auth_url = f"{self.base_url}/auth/basic"
-            response = requests.post(
-                auth_url,
-                json={"login": self.username, "password": self.password}
-            )
-            if response.status_code == 200:
-                self.token = response.json().get('token')
-                self._add_system_log("Аутентификация успешна")
-            else:
-                self._add_system_log(f"Ошибка аутентификации: {response.status_code}")
-        except Exception as e:
-            self._add_system_log(f"Ошибка подключения: {e}")
 
     def _add_system_log(self, message, level="INFO"):
         """Добавить системный лог"""
